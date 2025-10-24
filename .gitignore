@@ -8,10 +8,6 @@
 # testing
 /coverage
 
-
-node_modules
-.env
-
 # production
 /build
 
