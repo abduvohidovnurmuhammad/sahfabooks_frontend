@@ -1,5 +1,5 @@
 // Backend API URL
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'http://45.93.138.91:5000/api';
 
 // Token'ni saqlash
 let token = localStorage.getItem('token');
