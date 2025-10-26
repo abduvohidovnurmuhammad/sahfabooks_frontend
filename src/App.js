@@ -285,7 +285,7 @@ const handleRegister = async (e) => {
   try {
     console.log('Registration urinishi:', username);
     
-    const response = await fetch('http://localhost:5000/api/auth/register', {
+    const response = await fetch('http://45.93.138.91:5000/api/auth/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -334,7 +334,7 @@ const handleAddFile = async (e) => {
     formData.append('color_type', newFile.color_type);
     formData.append('file_format', newFile.file_format);
 
-    const response = await fetch('http://localhost:5000/api/files', {
+    const response = await fetch('http://45.93.138.91:5000/api/files', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${api.getToken()}`
@@ -376,7 +376,7 @@ const handleAddFile = async (e) => {
 // Faylni yuklab olish
 const handleDownloadFile = async (fileId, fileName) => {
   try {
-    const response = await fetch(`http://localhost:5000/api/files/${fileId}/download`, {
+    const response = await fetch(`http://45.93.138.91:5000/api/files/${fileId}/download`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${api.getToken()}`
@@ -419,7 +419,7 @@ const handleClientFileUpload = async (e) => {
     formData.append('uploaded_by', 'client');
     formData.append('status', 'pending');
 
-    const response = await fetch('http://localhost:5000/api/files/client-upload', {
+    const response = await fetch('http://45.93.138.91:5000/api/files/client-upload', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${api.getToken()}`
@@ -483,7 +483,7 @@ const handleApproveFile = async (fileId, cashPrice, bankPrice) => {
       return;
     }
 
-    const response = await fetch(`http://localhost:5000/api/files/${fileId}/approve`, {
+    const response = await fetch(`http://45.93.138.91:5000/api/files/${fileId}/approve`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${api.getToken()}`,
@@ -518,7 +518,7 @@ const handleRejectFile = async (fileId) => {
       return;
     }
 
-    const response = await fetch(`http://localhost:5000/api/files/${fileId}/reject`, {
+    const response = await fetch(`http://45.93.138.91:5000/api/files/${fileId}/reject`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${api.getToken()}`
