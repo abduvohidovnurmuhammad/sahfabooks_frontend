@@ -128,7 +128,8 @@ export default function App() {
   const [clientFile, setClientFile] = useState({
     title: '',
     description: '',
-    file: null,
+    cover_file: null,  // Muqova fayli
+    content_file: null,  // Ichki content fayli
     quantity: 1,
     page_size: 'A4',
     color_type: 'B&W',
@@ -370,10 +371,14 @@ export default function App() {
     }
   };
 
-  // Faylni yuklab olish
-  const handleDownloadFile = async (fileId, fileName) => {
+  // Faylni yuklab olish - cover yoki content
+  const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
     try {
-      const response = await fetch(`http://45.93.138.91:5000/api/files/${fileId}/download`, {
+      const endpoint = fileType === 'cover' 
+        ? `http://45.93.138.91:5000/api/files/${fileId}/download-cover`
+        : `http://45.93.138.91:5000/api/files/${fileId}/download`;
+        
+      const response = await fetch(endpoint, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${api.getToken()}`
@@ -386,7 +391,7 @@ export default function App() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = fileName;
+      a.download = `${fileType === 'cover' ? 'Muqova_' : 'Ichki_'}${fileName}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -394,17 +399,24 @@ export default function App() {
       
     } catch (error) {
       console.error('Download xatolik:', error);
-      alert('Faylni yuklab olishda xatolik!');
+      alert(`${fileType === 'cover' ? 'Muqova' : 'Ichki'} faylni yuklab olishda xatolik!`);
     }
   };
 
-  // Mijoz fayl yuklash
+  // Mijoz fayl yuklash - 2 ta fayl (muqova + content)
   const handleClientFileUpload = async (e) => {
     e.preventDefault();
     
     try {
+      // Validation: 2 ta fayl bo'lishi shart
+      if (!clientFile.cover_file || !clientFile.content_file) {
+        alert('Iltimos, ikkala faylni ham yuklang! (Muqova + Ichki content)');
+        return;
+      }
+
       const formData = new FormData();
-      formData.append('file', clientFile.file);
+      formData.append('cover_file', clientFile.cover_file);  // Muqova fayli
+      formData.append('content_file', clientFile.content_file);  // Ichki content fayli
       formData.append('title', clientFile.title);
       formData.append('description', clientFile.description);
       formData.append('quantity', clientFile.quantity);
@@ -425,15 +437,16 @@ export default function App() {
       if (!response.ok) throw new Error('Fayl yuklashda xatolik');
 
       const data = await response.json();
-      console.log('Fayl yuklandi:', data);
+      console.log('Fayllar yuklandi:', data);
       
-      alert('Fayl muvaffaqiyatli yuklandi! Admin narx belgilashini kuting.');
+      alert('Muqova va ichki fayllar muvaffaqiyatli yuklandi! Admin narx belgilashini kuting.');
       setShowClientUploadModal(false);
       
       setClientFile({
         title: '',
         description: '',
-        file: null,
+        cover_file: null,
+        content_file: null,
         quantity: 1,
         page_size: 'A4',
         color_type: 'B&W',
@@ -449,7 +462,9 @@ export default function App() {
           cashPrice: f.cash_price || 0,
           bankPrice: f.bank_price || 0,
           color: f.color_type === 'Color',
-          priceVisibility: f.show_price ? 'both' : 'none'
+          priceVisibility: f.show_price ? 'both' : 'none',
+          cover_path: f.cover_path || null,  // Muqova path
+          content_path: f.content_path || null  // Content path
         }));
         
         setClients([{
@@ -465,7 +480,7 @@ export default function App() {
       
     } catch (error) {
       console.error('Upload xatolik:', error);
-      alert('Fayl yuklashda xatolik!');
+      alert('Fayllarni yuklashda xatolik!');
     }
   };
 
@@ -1357,15 +1372,26 @@ export default function App() {
                           )}
                         </div>
                         
-                        {file.file_path && (
-                          <button
-                            onClick={() => handleDownloadFile(file.id, file.title)}
-                            className="w-full md:w-auto md:ml-4 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg flex items-center justify-center gap-2 text-sm"
-                          >
-                            <Download className="w-4 h-4" />
-                            Ko'rib chiqish
-                          </button>
-                        )}
+                        <div className="flex flex-col md:flex-row gap-2">
+                          {file.file_path && (
+                            <>
+                              <button
+                                onClick={() => handleDownloadFile(file.id, file.title, 'cover')}
+                                className="w-full md:w-auto px-4 py-2 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg flex items-center justify-center gap-2 text-sm"
+                              >
+                                <Download className="w-4 h-4" />
+                                Muqova
+                              </button>
+                              <button
+                                onClick={() => handleDownloadFile(file.id, file.title, 'content')}
+                                className="w-full md:w-auto px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg flex items-center justify-center gap-2 text-sm"
+                              >
+                                <Download className="w-4 h-4" />
+                                Ichki
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </div>
                       
                       <div className="border-t pt-4">
@@ -1535,11 +1561,18 @@ export default function App() {
                         </button>
                       )}
                       <button
-                        onClick={() => handleDownloadFile(file.id, file.name)}
+                        onClick={() => handleDownloadFile(file.id, file.name, 'cover')}
+                        className="flex-1 md:flex-initial px-4 md:px-6 py-2.5 md:py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-lg font-semibold hover:from-orange-600 hover:to-amber-700 flex items-center justify-center gap-2 text-sm md:text-base"
+                      >
+                        <Download className="w-4 h-4 md:w-5 md:h-5" />
+                        Muqova
+                      </button>
+                      <button
+                        onClick={() => handleDownloadFile(file.id, file.name, 'content')}
                         className="flex-1 md:flex-initial px-4 md:px-6 py-2.5 md:py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-emerald-700 flex items-center justify-center gap-2 text-sm md:text-base"
                       >
                         <Download className="w-4 h-4 md:w-5 md:h-5" />
-                        Yuklab olish
+                        Ichki
                       </button>
                     </div>
                   </div>
@@ -1943,15 +1976,30 @@ export default function App() {
               <div className="space-y-3 md:space-y-4">
                 <div>
                   <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
-                    Fayl (PDF, DOC, DOCX - Max 500MB) *
+                    📷 Muqova Fayli (Kitob ustki qismi) *
+                  </label>
+                  <input
+                    type="file"
+                    required
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    onChange={(e) => setClientFile({...clientFile, cover_file: e.target.files[0]})}
+                    className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Kitobning muqovasi (ustki ko'rinishi) uchun</p>
+                </div>
+
+                <div>
+                  <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
+                    📄 Ichki Content Fayli (Asosiy matn) *
                   </label>
                   <input
                     type="file"
                     required
                     accept=".pdf,.doc,.docx"
-                    onChange={(e) => setClientFile({...clientFile, file: e.target.files[0]})}
+                    onChange={(e) => setClientFile({...clientFile, content_file: e.target.files[0]})}
                     className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Kitobning ichki sahifalari (matn) uchun</p>
                 </div>
 
                 <div>
