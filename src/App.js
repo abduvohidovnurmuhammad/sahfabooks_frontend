@@ -372,36 +372,40 @@ export default function App() {
   };
 
   // Faylni yuklab olish - cover yoki content
-  const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
-    try {
-      const endpoint = fileType === 'cover' 
-        ? `http://45.93.138.91:5000/api/files/${fileId}/download-cover`
-        : `http://45.93.138.91:5000/api/files/${fileId}/download`;
-        
-      const response = await fetch(endpoint, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${api.getToken()}`
-        }
-      });
+// Faylni yuklab olish - cover yoki content
+const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
+  try {
+    // LOCAL uchun localhost ishlatamiz
+    const endpoint = `http://localhost:5000/api/files/${fileId}/download/${fileType}`;
+    
+    const response = await fetch(endpoint, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${api.getToken()}`
+      }
+    });
 
-      if (!response.ok) throw new Error('Yuklab olishda xatolik');
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${fileType === 'cover' ? 'Muqova_' : 'Ichki_'}${fileName}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      
-    } catch (error) {
-      console.error('Download xatolik:', error);
-      alert(`${fileType === 'cover' ? 'Muqova' : 'Ichki'} faylni yuklab olishda xatolik!`);
+    if (!response.ok) {
+      throw new Error('Yuklab olishda xatolik');
     }
-  };
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${fileType === 'cover' ? 'Muqova_' : 'Ichki_'}${fileName}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+    console.log(`✅ ${fileType} fayl yuklab olindi!`);
+    
+  } catch (error) {
+    console.error('Download xatolik:', error);
+    alert(`${fileType === 'cover' ? 'Muqova' : 'Ichki'} faylni yuklab olishda xatolik!`);
+  }
+};
 
   // Mijoz fayl yuklash - 2 ta fayl (muqova + content)
   const handleClientFileUpload = async (e) => {
