@@ -376,7 +376,7 @@ export default function App() {
 const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
   try {
     // LOCAL uchun localhost ishlatamiz
-    const endpoint = `http://localhost:5000/api/files/${fileId}/download/${fileType}`;
+    const endpoint = `http://45.93.138.91:5000/api/files/${fileId}/download/${fileType}`;
     
     const response = await fetch(endpoint, {
       method: 'GET',
