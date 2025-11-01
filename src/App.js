@@ -1145,22 +1145,47 @@ const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
                               )}
                             </td>
                           )}
-                          <td className="px-4 py-4 text-sm">
-                            {order.items && order.items.length > 0 ? (
-                              <div>
-                                <div className="font-medium text-gray-900">
-                                  {order.items[0].file_title}
-                                </div>
-                                {order.items.length > 1 && (
-                                  <div className="text-xs text-gray-500">
-                                    +{order.items.length - 1} boshqa
-                                  </div>
-                                )}
-                              </div>
-                            ) : (
-                              <span className="text-gray-400">N/A</span>
-                            )}
-                          </td>
+<td className="px-4 py-4 text-sm">
+  {order.items && order.items.length > 0 ? (
+    <div className="space-y-3">
+      {order.items.map((item, idx) => (
+        <div 
+          key={idx} 
+          className={`${idx > 0 ? 'pt-3 border-t border-gray-200' : ''}`}
+        >
+          <div className="font-medium text-gray-900">
+            {item.file_title}
+          </div>
+          <div className="text-xs text-gray-500 mb-2">
+            {item.quantity} dona × {parseInt(item.price).toLocaleString()} UZS
+          </div>
+          
+          {/* ✅ DOWNLOAD TUGMALARINI QO'SHING! */}
+          <div className="flex gap-1">
+            <button
+              onClick={() => handleDownloadFile(item.file_id, item.file_title, 'cover')}
+              className="px-2 py-1 text-white bg-orange-500 hover:bg-orange-600 rounded text-xs flex items-center gap-1"
+              title="Muqova"
+            >
+              <Download className="w-3 h-3" />
+              Muqova
+            </button>
+            <button
+              onClick={() => handleDownloadFile(item.file_id, item.file_title, 'content')}
+              className="px-2 py-1 text-white bg-green-500 hover:bg-green-600 rounded text-xs flex items-center gap-1"
+              title="Ichki"
+            >
+              <Download className="w-3 h-3" />
+              Ichki
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <span className="text-gray-400">N/A</span>
+  )}
+</td>
                           <td className="px-4 py-4 text-sm">
                             {order.items && order.items.length > 0 ? (
                               <div className="text-xs">
@@ -1263,7 +1288,8 @@ const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
                 </div>
                 
                 {/* Mobile Cards */}
-        <div className="md:hidden px-4 pb-4 space-y-4">
+{/* Mobile Cards */}
+<div className="md:hidden px-4 pb-4 space-y-4">
   {orders.map((order) => (
     <div key={order.id} className="bg-white border rounded-lg p-4">
       <div className="flex justify-between items-start mb-3">
@@ -1280,13 +1306,41 @@ const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
         </span>
       </div>
       
+      {/* ✅ BARCHA ITEMLARNI KO'RSATISH */}
       {order.items && order.items.length > 0 && (
-        <div className="text-sm text-gray-600 mb-3">
-          <div className="font-semibold text-gray-800">{order.items[0].file_title}</div>
-          <div className="flex justify-between mt-1">
-            <span>{order.items[0].quantity} dona</span>
-            <span>{parseInt(order.items[0].price).toLocaleString()} UZS</span>
-          </div>
+        <div className="space-y-3 mb-3">
+          {order.items.map((item, idx) => (
+            <div 
+              key={idx}
+              className={`${idx > 0 ? 'pt-3 border-t border-gray-100' : ''}`}
+            >
+              <div className="font-semibold text-gray-800 mb-1">
+                {item.file_title}
+              </div>
+              <div className="flex justify-between text-sm text-gray-600 mb-2">
+                <span>{item.quantity} dona</span>
+                <span>{parseInt(item.price).toLocaleString()} UZS</span>
+              </div>
+              
+              {/* Download tugmalari har bir fayl uchun */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleDownloadFile(item.file_id, item.file_title, 'cover')}
+                  className="flex-1 px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs flex items-center justify-center gap-1"
+                >
+                  <Download className="w-3 h-3" />
+                  Muqova
+                </button>
+                <button
+                  onClick={() => handleDownloadFile(item.file_id, item.file_title, 'content')}
+                  className="flex-1 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs flex items-center justify-center gap-1"
+                >
+                  <Download className="w-3 h-3" />
+                  Ichki
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
       
@@ -1299,36 +1353,12 @@ const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
             {parseInt(order.total_amount).toLocaleString()} UZS
           </div>
         </div>
-        <div className="flex gap-2">
-          {/* ✅ 2 TA DOWNLOAD TUGMASI */}
-          {order.items && order.items[0] && order.items[0].file_id && (
-            <>
-              {/* Muqova yuklab olish */}
-              <button
-                onClick={() => handleDownloadFile(order.items[0].file_id, order.items[0].file_title, 'cover')}
-                className="p-2 text-white bg-orange-500 hover:bg-orange-600 rounded-lg"
-                title="Muqova"
-              >
-                <Download className="w-4 h-4" />
-              </button>
-              
-              {/* Ichki yuklab olish */}
-              <button
-                onClick={() => handleDownloadFile(order.items[0].file_id, order.items[0].file_title, 'content')}
-                className="p-2 text-white bg-green-500 hover:bg-green-600 rounded-lg"
-                title="Ichki"
-              >
-                <Download className="w-4 h-4" />
-              </button>
-            </>
-          )}
-          <button
-            onClick={() => alert(`Buyurtma #${order.id} tafsilotlari`)}
-            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
-        </div>
+        <button
+          onClick={() => alert(`Buyurtma #${order.id} tafsilotlari`)}
+          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+        >
+          <Eye className="w-4 h-4" />
+        </button>
       </div>
     </div>
   ))}
@@ -1613,15 +1643,11 @@ const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
   <div>
     <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6">{t.myOrders}</h1>
     {orders.filter(o => o.client_id === user.id).length === 0 ? (
-      //                  ↑ client_id (underscore!)
       <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 text-center">
         <p className="text-gray-500 text-base md:text-lg">Buyurtmalar yo'q</p>
       </div>
     ) : (
       orders.filter(o => o.client_id === user.id).map(order => {
-        //              ↑ client_id (underscore!)
-        
-        // ✅ order.items ishlatish (order.files emas!)
         const total = order.items && order.items.length > 0
           ? order.items.reduce((sum, item) => sum + (parseFloat(item.price) * parseInt(item.quantity)), 0)
           : parseFloat(order.total_amount);
@@ -1640,48 +1666,52 @@ const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
               </span>
             </div>
             
-            {/* Fayllar ro'yxati */}
+            {/* ✅ BARCHA FAYLLARNI HAR BIRI UCHUN DOWNLOAD TUGMALARI BILAN */}
             {order.items && order.items.length > 0 && (
-              <div className="mb-3">
+              <div className="mb-4 space-y-3">
                 {order.items.map((item, idx) => (
-                  <div key={idx} className="text-sm text-gray-600 mb-1">
-                    <span className="font-semibold">{item.file_title}</span>
-                    {' - '}
-                    <span>{item.quantity} dona × {parseInt(item.price).toLocaleString()} UZS</span>
+                  <div 
+                    key={idx}
+                    className={`${idx > 0 ? 'pt-3 border-t border-gray-200' : ''}`}
+                  >
+                    <div className="font-semibold text-gray-800 mb-1">
+                      {item.file_title} - {item.quantity} dona × {parseInt(item.price).toLocaleString()} UZS
+                    </div>
+                    
+                    {/* ✅ HAR BIR FAYL UCHUN 2 TA TUGMA */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleDownloadFile(item.file_id, item.file_title, 'cover')}
+                        className="flex-1 px-4 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold text-sm flex items-center justify-center gap-2"
+                      >
+                        <Download className="w-4 h-4" />
+                        Muqova
+                      </button>
+                      <button
+                        onClick={() => handleDownloadFile(item.file_id, item.file_title, 'content')}
+                        className="flex-1 px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-sm flex items-center justify-center gap-2"
+                      >
+                        <Download className="w-4 h-4" />
+                        Ichki
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
             )}
             
-            <p className="text-lg md:text-xl font-bold text-gray-900">
-              Jami: {total.toLocaleString()} UZS
-            </p>
-            
-            {/* Download tugmalari */}
-            {order.items && order.items[0] && order.items[0].file_id && (
-              <div className="flex gap-2 mt-4">
-                <button
-                  onClick={() => handleDownloadFile(order.items[0].file_id, order.items[0].file_title, 'cover')}
-                  className="flex-1 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold text-sm flex items-center justify-center gap-2"
-                >
-                  <Download className="w-4 h-4" />
-                  Muqova
-                </button>
-                <button
-                  onClick={() => handleDownloadFile(order.items[0].file_id, order.items[0].file_title, 'content')}
-                  className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-sm flex items-center justify-center gap-2"
-                >
-                  <Download className="w-4 h-4" />
-                  Ichki
-                </button>
-              </div>
-            )}
+            <div className="border-t pt-3">
+              <p className="text-lg md:text-xl font-bold text-gray-900">
+                Jami: {total.toLocaleString()} UZS
+              </p>
+            </div>
           </div>
         );
       })
     )}
   </div>
 )}
+
 
         {/* Mijoz - Profil */}
         {user.type === 'client' && section === 'profile' && currentClient && (
