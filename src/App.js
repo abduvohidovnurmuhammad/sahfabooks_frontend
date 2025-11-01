@@ -1609,39 +1609,79 @@ const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
         )}
 
         {/* Mijoz - Buyurtmalarim */}
-        {user.type === 'client' && section === 'myOrders' && (
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6">{t.myOrders}</h1>
-            {orders.filter(o => o.clientId === user.id).length === 0 ? (
-              <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 text-center">
-                <p className="text-gray-500 text-base md:text-lg">Buyurtmalar yo'q</p>
+{user.type === 'client' && section === 'myOrders' && (
+  <div>
+    <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6">{t.myOrders}</h1>
+    {orders.filter(o => o.client_id === user.id).length === 0 ? (
+      //                  ↑ client_id (underscore!)
+      <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 text-center">
+        <p className="text-gray-500 text-base md:text-lg">Buyurtmalar yo'q</p>
+      </div>
+    ) : (
+      orders.filter(o => o.client_id === user.id).map(order => {
+        //              ↑ client_id (underscore!)
+        
+        // ✅ order.items ishlatish (order.files emas!)
+        const total = order.items && order.items.length > 0
+          ? order.items.reduce((sum, item) => sum + (parseFloat(item.price) * parseInt(item.quantity)), 0)
+          : parseFloat(order.total_amount);
+        
+        return (
+          <div key={order.id} className="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-4">
+            <div className="flex justify-between items-start mb-3 md:mb-4">
+              <div>
+                <h3 className="text-lg md:text-xl font-bold">Buyurtma #{order.id}</h3>
+                <p className="text-gray-600 text-sm md:text-base">
+                  {new Date(order.created_at).toLocaleDateString('uz-UZ')}
+                </p>
               </div>
-            ) : (
-              orders.filter(o => o.clientId === user.id).map(order => {
-                const total = order.files.reduce(
-                  (sum, f) => sum + f.price * f.quantity,
-                  0
-                );
-                return (
-                  <div key={order.id} className="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-4">
-                    <div className="flex justify-between items-start mb-3 md:mb-4">
-                      <div>
-                        <h3 className="text-lg md:text-xl font-bold">Buyurtma #{order.id}</h3>
-                        <p className="text-gray-600 text-sm md:text-base">{order.orderDate}</p>
-                      </div>
-                      <span className="px-3 md:px-4 py-1.5 md:py-2 bg-blue-100 text-blue-800 rounded-full font-semibold text-xs md:text-sm">
-                        {order.status}
-                      </span>
-                    </div>
-                    <p className="text-lg md:text-xl font-bold text-gray-900">
-                      {total.toLocaleString()} UZS
-                    </p>
+              <span className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full font-semibold text-xs md:text-sm ${getStatusColor(order.status)}`}>
+                {getStatusText(order.status)}
+              </span>
+            </div>
+            
+            {/* Fayllar ro'yxati */}
+            {order.items && order.items.length > 0 && (
+              <div className="mb-3">
+                {order.items.map((item, idx) => (
+                  <div key={idx} className="text-sm text-gray-600 mb-1">
+                    <span className="font-semibold">{item.file_title}</span>
+                    {' - '}
+                    <span>{item.quantity} dona × {parseInt(item.price).toLocaleString()} UZS</span>
                   </div>
-                );
-              })
+                ))}
+              </div>
+            )}
+            
+            <p className="text-lg md:text-xl font-bold text-gray-900">
+              Jami: {total.toLocaleString()} UZS
+            </p>
+            
+            {/* Download tugmalari */}
+            {order.items && order.items[0] && order.items[0].file_id && (
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={() => handleDownloadFile(order.items[0].file_id, order.items[0].file_title, 'cover')}
+                  className="flex-1 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold text-sm flex items-center justify-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Muqova
+                </button>
+                <button
+                  onClick={() => handleDownloadFile(order.items[0].file_id, order.items[0].file_title, 'content')}
+                  className="flex-1 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-sm flex items-center justify-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Ichki
+                </button>
+              </div>
             )}
           </div>
-        )}
+        );
+      })
+    )}
+  </div>
+)}
 
         {/* Mijoz - Profil */}
         {user.type === 'client' && section === 'profile' && currentClient && (
