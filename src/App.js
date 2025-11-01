@@ -1377,24 +1377,24 @@ const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
                         </div>
                         
                         <div className="flex flex-col md:flex-row gap-2">
-                          {file.file_path && (
-                            <>
-                              <button
-                                onClick={() => handleDownloadFile(file.id, file.title, 'cover')}
-                                className="w-full md:w-auto px-4 py-2 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg flex items-center justify-center gap-2 text-sm"
-                              >
-                                <Download className="w-4 h-4" />
-                                Muqova
-                              </button>
-                              <button
-                                onClick={() => handleDownloadFile(file.id, file.title, 'content')}
-                                className="w-full md:w-auto px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg flex items-center justify-center gap-2 text-sm"
-                              >
-                                <Download className="w-4 h-4" />
-                                Ichki
-                              </button>
-                            </>
-                          )}
+{(file.cover_file_path || file.content_file_path || file.file_path) && (
+  <>
+    <button
+      onClick={() => handleDownloadFile(file.id, file.title, 'cover')}
+      className="w-full md:w-auto px-4 py-2 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg flex items-center justify-center gap-2 text-sm"
+    >
+      <Download className="w-4 h-4" />
+      Muqova
+    </button>
+    <button
+      onClick={() => handleDownloadFile(file.id, file.title, 'content')}
+      className="w-full md:w-auto px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg flex items-center justify-center gap-2 text-sm"
+    >
+      <Download className="w-4 h-4" />
+      Ichki
+    </button>
+  </>
+)}
                         </div>
                       </div>
                       
