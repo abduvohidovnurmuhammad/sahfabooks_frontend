@@ -166,7 +166,7 @@ export default function App() {
           
           const filesData = await api.getFiles();
           console.log('Files yuklandi:', filesData);
-          
+        
           if (usersData.users) {
             const clientUsers = usersData.users
               .filter(u => u.role === 'client')
@@ -487,6 +487,40 @@ const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
       alert('Fayllarni yuklashda xatolik!');
     }
   };
+const handleDeleteOrder = async (orderId) => {
+  try {
+    const confirmDelete = window.confirm(
+      'Buyurtmani o\'chirishni xohlaysizmi? Bu amalni qaytarib bo\'lmaydi!'
+    );
+    
+    if (!confirmDelete) return;
+
+    console.log('=== O\'CHIRISH ===');
+    console.log('Order ID:', orderId);
+
+    const response = await fetch(`http://45.93.138.91:5000/api/orders/${orderId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${api.getToken()}`
+      }
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      alert('✅ Buyurtma o\'chirildi!');
+      const ordersData = await api.getOrders();
+      if (ordersData.success) {
+        setOrders(ordersData.orders);
+      }
+    } else {
+      alert('❌ Xatolik: ' + data.error);
+    }
+  } catch (err) {
+    console.error('O\'chirish xatolik:', err);
+    alert('❌ Xatolik yuz berdi!');
+  }
+};
 
   // Admin: Faylni tasdiqlash
   const handleApproveFile = async (fileId, cashPrice, bankPrice) => {
@@ -521,6 +555,34 @@ const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
       alert('Faylni tasdiqlashda xatolik!');
     }
   };
+const handleDeleteFile = async (fileId) => {
+  try {
+    const confirmDelete = window.confirm(
+      'Faylni o\'chirishni xohlaysizmi? Bu amalni qaytarib bo\'lmaydi!'
+    );
+    
+    if (!confirmDelete) return;
+
+    const response = await fetch(`http://45.93.138.91:5000/api/files/${fileId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${api.getToken()}`
+      }
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      alert('✅ Fayl o\'chirildi!');
+      window.location.reload();
+    } else {
+      alert('❌ Xatolik: ' + data.error);
+    }
+  } catch (err) {
+    console.error('Fayl o\'chirish xatolik:', err);
+    alert('❌ Xatolik yuz berdi!');
+  }
+};
 
   // Admin: Faylni rad etish
   const handleRejectFile = async (fileId) => {
@@ -1111,183 +1173,179 @@ const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
             ) : (
               <>
                 {/* Desktop Table */}
-                <div className="hidden md:block overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ID</th>
-                        {user.type === 'admin' && (
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Mijoz</th>
-                        )}
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Fayl</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Format</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Miqdor</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Narx</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Jami</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Sana</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Holat</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Amallar</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {orders.map(order => (
-                        <tr key={order.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-4 text-sm font-medium text-gray-900">
-                            #{order.id}
-                          </td>
-                          {user.type === 'admin' && (
-                            <td className="px-4 py-4 text-sm">
-                              <div className="font-medium text-gray-900">
-                                {order.organization_name || order.client_username}
-                              </div>
-                              {order.client_phone && (
-                                <div className="text-xs text-gray-500">{order.client_phone}</div>
-                              )}
-                            </td>
-                          )}
-<td className="px-4 py-4 text-sm">
-  {order.items && order.items.length > 0 ? (
-    <div className="space-y-3">
-      {order.items.map((item, idx) => (
-        <div 
-          key={idx} 
-          className={`${idx > 0 ? 'pt-3 border-t border-gray-200' : ''}`}
-        >
-          <div className="font-medium text-gray-900">
-            {item.file_title}
-          </div>
-          <div className="text-xs text-gray-500 mb-2">
-            {item.quantity} dona × {parseInt(item.price).toLocaleString()} UZS
-          </div>
+<div className="hidden md:block overflow-x-auto">
+  <table className="w-full">
+    <thead className="bg-gray-50">
+      <tr>
+        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">ID</th>
+        {user.type === 'admin' && (
+          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Mijoz</th>
+        )}
+        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Fayl</th>
+        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Format</th>
+        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Miqdor</th>
+        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Narx</th>
+        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Jami</th>
+        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Sana</th>
+        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Holat</th>
+        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Amallar</th>
+      </tr>
+    </thead>
+    <tbody className="divide-y divide-gray-200">
+      {orders.map(order => (
+        <tr key={order.id} className="hover:bg-gray-50">
+          <td className="px-4 py-4 text-sm font-medium text-gray-900">
+            #{order.id}
+          </td>
+          {user.type === 'admin' && (
+            <td className="px-4 py-4 text-sm">
+              <div className="font-medium text-gray-900">
+                {order.organization_name || order.client_username}
+              </div>
+              {order.client_phone && (
+                <div className="text-xs text-gray-500">{order.client_phone}</div>
+              )}
+            </td>
+          )}
           
-          {/* ✅ DOWNLOAD TUGMALARINI QO'SHING! */}
-          <div className="flex gap-1">
-            <button
-              onClick={() => handleDownloadFile(item.file_id, item.file_title, 'cover')}
-              className="px-2 py-1 text-white bg-orange-500 hover:bg-orange-600 rounded text-xs flex items-center gap-1"
-              title="Muqova"
-            >
-              <Download className="w-3 h-3" />
-              Muqova
-            </button>
-            <button
-              onClick={() => handleDownloadFile(item.file_id, item.file_title, 'content')}
-              className="px-2 py-1 text-white bg-green-500 hover:bg-green-600 rounded text-xs flex items-center gap-1"
-              title="Ichki"
-            >
-              <Download className="w-3 h-3" />
-              Ichki
-            </button>
-          </div>
-        </div>
-      ))}
-    </div>
-  ) : (
-    <span className="text-gray-400">N/A</span>
-  )}
-</td>
-                          <td className="px-4 py-4 text-sm">
-                            {order.items && order.items.length > 0 ? (
-                              <div className="text-xs">
-                                <div>{order.items[0].page_size || 'A4'}</div>
-                                <div className="text-gray-500">
-                                  {order.items[0].color_type === 'Color' ? 'Rangli' : 'Oq-Qora'}
-                                </div>
-                              </div>
-                            ) : (
-                              <span className="text-gray-400">N/A</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-4 text-sm text-gray-900">
-                            {order.items && order.items.length > 0 ? (
-                              <span className="font-medium">{order.items[0].quantity} dona</span>
-                            ) : (
-                              <span className="text-gray-400">N/A</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-4 text-sm text-gray-900">
-                            {order.items && order.items.length > 0 ? (
-                              <span>{parseInt(order.items[0].price).toLocaleString()} UZS</span>
-                            ) : (
-                              <span className="text-gray-400">N/A</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-4 text-sm font-bold text-gray-900">
-                            {parseInt(order.total_amount).toLocaleString()} UZS
-                          </td>
-                          <td className="px-4 py-4 text-sm text-gray-500">
-                            {new Date(order.created_at).toLocaleDateString('uz-UZ')}
-                          </td>
-                          <td className="px-4 py-4 text-sm">
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
-                              {getStatusText(order.status)}
-                            </span>
-                          </td>
-                          <td className="px-4 py-4 text-sm">
-                            <div className="flex items-center gap-2">
-                              {order.items && order.items.length > 0 && order.items[0].file_id && (
-  <div className="flex gap-1">
-    {/* Muqova yuklab olish */}
-    <button
-      onClick={() => handleDownloadFile(order.items[0].file_id, order.items[0].file_title, 'cover')}
-      className="p-2 text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors"
-      title="Muqova"
-    >
-      <Download className="w-4 h-4" />
-    </button>
-    
-    {/* Ichki yuklab olish */}
-    <button
-      onClick={() => handleDownloadFile(order.items[0].file_id, order.items[0].file_title, 'content')}
-      className="p-2 text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors"
-      title="Ichki"
-    >
-      <Download className="w-4 h-4" />
-    </button>
-  </div>
-)}
-                              
-                              {user.type === 'admin' && (
-                                <select
-                                  value={order.status}
-                                  onChange={async (e) => {
-                                    try {
-                                      await api.updateOrderStatus(order.id, e.target.value);
-                                      const ordersData = await api.getOrders();
-                                      setOrders(ordersData.orders);
-                                      alert('Status muvaffaqiyatli yangilandi!');
-                                    } catch (err) {
-                                      console.error('Status yangilash xatolik:', err);
-                                      alert('Xatolik yuz berdi!');
-                                    }
-                                  }}
-                                  className="text-xs px-2 py-1 border rounded hover:border-blue-500 focus:outline-none focus:border-blue-500"
-                                >
-                                  <option value="pending">Qabul qilindi</option>
-                                  <option value="processing">Tayyorlanmoqda</option>
-                                  <option value="completed">Tayyor</option>
-                                  <option value="cancelled">Bekor qilindi</option>
-                                </select>
-                              )}
-                              
-                              <button
-                                onClick={() => {
-                                  alert(`Buyurtma #${order.id} tafsilotlari`);
-                                }}
-                                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                                title="Batafsil"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+          {/* FAYL ustuni - har bir fayl uchun download tugmalari */}
+          <td className="px-4 py-4 text-sm">
+            {order.items && order.items.length > 0 ? (
+              <div className="space-y-3">
+                {order.items.map((item, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`${idx > 0 ? 'pt-3 border-t border-gray-200' : ''}`}
+                  >
+                    <div className="font-medium text-gray-900">
+                      {item.file_title}
+                    </div>
+                    <div className="text-xs text-gray-500 mb-2">
+                      {item.quantity} dona × {parseInt(item.price).toLocaleString()} UZS
+                    </div>
+                    
+                    {/* Download tugmalari */}
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => handleDownloadFile(item.file_id, item.file_title, 'cover')}
+                        className="px-2 py-1 text-white bg-orange-500 hover:bg-orange-600 rounded text-xs flex items-center gap-1"
+                        title="Muqova"
+                      >
+                        <Download className="w-3 h-3" />
+                        Muqova
+                      </button>
+                      <button
+                        onClick={() => handleDownloadFile(item.file_id, item.file_title, 'content')}
+                        className="px-2 py-1 text-white bg-green-500 hover:bg-green-600 rounded text-xs flex items-center gap-1"
+                        title="Ichki"
+                      >
+                        <Download className="w-3 h-3" />
+                        Ichki
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <span className="text-gray-400">N/A</span>
+            )}
+          </td>
+          
+          <td className="px-4 py-4 text-sm">
+            {order.items && order.items.length > 0 ? (
+              <div className="text-xs">
+                <div>{order.items[0].page_size || 'A4'}</div>
+                <div className="text-gray-500">
+                  {order.items[0].color_type === 'Color' ? 'Rangli' : 'Oq-Qora'}
                 </div>
-                
-                {/* Mobile Cards */}
+              </div>
+            ) : (
+              <span className="text-gray-400">N/A</span>
+            )}
+          </td>
+          <td className="px-4 py-4 text-sm text-gray-900">
+            {order.items && order.items.length > 0 ? (
+              <span className="font-medium">{order.items[0].quantity} dona</span>
+            ) : (
+              <span className="text-gray-400">N/A</span>
+            )}
+          </td>
+          <td className="px-4 py-4 text-sm text-gray-900">
+            {order.items && order.items.length > 0 ? (
+              <span>{parseInt(order.items[0].price).toLocaleString()} UZS</span>
+            ) : (
+              <span className="text-gray-400">N/A</span>
+            )}
+          </td>
+          <td className="px-4 py-4 text-sm font-bold text-gray-900">
+            {parseInt(order.total_amount).toLocaleString()} UZS
+          </td>
+          <td className="px-4 py-4 text-sm text-gray-500">
+            {new Date(order.created_at).toLocaleDateString('uz-UZ')}
+          </td>
+          <td className="px-4 py-4 text-sm">
+            <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+              {getStatusText(order.status)}
+            </span>
+          </td>
+          
+          {/* ✅ AMALLAR ustuni - Download tugmalari O'CHIRILDI, Delete qo'shildi */}
+          <td className="px-4 py-4 text-sm">
+            <div className="flex items-center gap-2">
+              
+              {/* Admin status o'zgartirish */}
+              {user.type === 'admin' && (
+                <select
+                  value={order.status}
+                  onChange={async (e) => {
+                    try {
+                      await api.updateOrderStatus(order.id, e.target.value);
+                      const ordersData = await api.getOrders();
+                      setOrders(ordersData.orders);
+                      alert('Status muvaffaqiyatli yangilandi!');
+                    } catch (err) {
+                      console.error('Status yangilash xatolik:', err);
+                      alert('Xatolik yuz berdi!');
+                    }
+                  }}
+                  className="text-xs px-2 py-1 border rounded hover:border-blue-500 focus:outline-none focus:border-blue-500"
+                >
+                  <option value="pending">Qabul qilindi</option>
+                  <option value="processing">Tayyorlanmoqda</option>
+                  <option value="completed">Tayyor</option>
+                  <option value="cancelled">Bekor qilindi</option>
+                </select>
+              )}
+              
+              {/* Batafsil */}
+              <button
+                onClick={() => {
+                  alert(`Buyurtma #${order.id} tafsilotlari`);
+                }}
+                className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Batafsil"
+              >
+                <Eye className="w-4 h-4" />
+              </button>
+              
+              {/* ✅ O'CHIRISH TUGMASI */}
+              {user.type === 'admin' && (
+                <button
+                  onClick={() => handleDeleteOrder(order.id)}
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  title="O'chirish"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
 {/* Mobile Cards */}
 <div className="md:hidden px-4 pb-4 space-y-4">
   {orders.map((order) => (
@@ -1306,7 +1364,7 @@ const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
         </span>
       </div>
       
-      {/* ✅ BARCHA ITEMLARNI KO'RSATISH */}
+      {/* BARCHA ITEMLARNI KO'RSATISH */}
       {order.items && order.items.length > 0 && (
         <div className="space-y-3 mb-3">
           {order.items.map((item, idx) => (
@@ -1344,6 +1402,7 @@ const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
         </div>
       )}
       
+      {/* ✅ OXIRGI QISM - Delete tugmasi qo'shildi */}
       <div className="border-t pt-3 flex justify-between items-center">
         <div>
           <div className="text-sm text-gray-500">
@@ -1353,12 +1412,28 @@ const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
             {parseInt(order.total_amount).toLocaleString()} UZS
           </div>
         </div>
-        <button
-          onClick={() => alert(`Buyurtma #${order.id} tafsilotlari`)}
-          className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-        >
-          <Eye className="w-4 h-4" />
-        </button>
+        
+        {/* ✅ TUGMALAR - Eye va Delete */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => alert(`Buyurtma #${order.id} tafsilotlari`)}
+            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+            title="Batafsil"
+          >
+            <Eye className="w-4 h-4" />
+          </button>
+          
+          {/* ✅ DELETE TUGMASI */}
+          {user.type === 'admin' && (
+            <button
+              onClick={() => handleDeleteOrder(order.id)}
+              className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+              title="O'chirish"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   ))}
@@ -1506,137 +1581,150 @@ const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
           </div>
         )}
         
-        {/* Mijoz - Fayllar */}
-        {user.type === 'client' && section === 'myFiles' && currentClient && (
-          <div>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 gap-3">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-800">{t.myFiles}</h1>
-              <div className="flex gap-2 md:gap-3 w-full md:w-auto">
+{/* Mijoz - Fayllar */}
+{user.type === 'client' && section === 'myFiles' && currentClient && (
+  <div>
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 gap-3">
+      <h1 className="text-2xl md:text-3xl font-bold text-gray-800">{t.myFiles}</h1>
+      <div className="flex gap-2 md:gap-3 w-full md:w-auto">
+        <button
+          onClick={() => setShowClientUploadModal(true)}
+          className="flex-1 md:flex-initial px-4 md:px-6 py-2.5 md:py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg font-semibold hover:from-purple-600 hover:to-indigo-700 text-sm md:text-base"
+        >
+          + Yangi Fayl Yuklash
+        </button>
+        {cart.length > 0 && (
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex-1 md:flex-initial px-4 md:px-6 py-2.5 md:py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg font-semibold text-sm md:text-base"
+          >
+            {t.orderNow} ({cart.length})
+          </button>
+        )}
+      </div>
+    </div>
+    
+    {currentClient.files.map(file => {
+      const fileStatus = file.status || (file.priceVisibility === 'none' ? 'pending' : 'approved');
+      const isRejected = fileStatus === 'rejected';
+      const isPending = fileStatus === 'pending';
+      const isApproved = fileStatus === 'approved' || file.priceVisibility !== 'none';
+      
+      return (
+        <div key={file.id} className="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-4">
+          <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+            <div className="flex-1 w-full">
+              
+              {/* ✅ YANGILANGAN - Sarlavha va Delete tugmasi */}
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex items-center gap-2 md:gap-3 flex-1 flex-wrap">
+                  <h3 className="text-lg md:text-xl font-bold text-gray-800">{file.name}</h3>
+                  {isPending && (
+                    <span className="px-2 md:px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs md:text-sm font-semibold">
+                      Narx kutilmoqda
+                    </span>
+                  )}
+                  {isRejected && (
+                    <span className="px-2 md:px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs md:text-sm font-semibold">
+                      Rad etildi
+                    </span>
+                  )}
+                </div>
+                
+                {/* ✅ DELETE TUGMASI */}
                 <button
-                  onClick={() => setShowClientUploadModal(true)}
-                  className="flex-1 md:flex-initial px-4 md:px-6 py-2.5 md:py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg font-semibold hover:from-purple-600 hover:to-indigo-700 text-sm md:text-base"
+                  onClick={() => handleDeleteFile(file.id)}
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                  title="O'chirish"
                 >
-                  + Yangi Fayl Yuklash
+                  <Trash2 className="w-5 h-5" />
                 </button>
-                {cart.length > 0 && (
-                  <button
-                    onClick={() => setShowModal(true)}
-                    className="flex-1 md:flex-initial px-4 md:px-6 py-2.5 md:py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg font-semibold text-sm md:text-base"
-                  >
-                    {t.orderNow} ({cart.length})
-                  </button>
-                )}
               </div>
+              
+              <div className="text-xs md:text-sm text-gray-600 mb-3 md:mb-4">
+                <span className="mr-3 md:mr-4">
+                  <strong>{t.format}:</strong> {file.format}
+                </span>
+                <span>
+                  <strong>Rang:</strong>{' '}
+                  {file.color ? t.colorPrinting : t.blackWhite}
+                </span>
+              </div>
+              
+              {isRejected && (
+                <div className="p-3 md:p-4 bg-red-50 border border-red-200 rounded-lg mb-3">
+                  <p className="text-red-800 font-semibold text-sm md:text-base">
+                    ❌ Bu fayl admin tomonidan rad etildi
+                  </p>
+                  <p className="text-xs md:text-sm text-red-600 mt-1">
+                    Agar savol bo'lsa, admin bilan bog'laning.
+                  </p>
+                </div>
+              )}
+              
+              {isPending && (
+                <div className="p-3 md:p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-3">
+                  <p className="text-yellow-800 font-semibold text-sm md:text-base">
+                    ⏳ Admin narx belgilashini kutmoqda
+                  </p>
+                  <p className="text-xs md:text-sm text-yellow-600 mt-1">
+                    Narx belgilangandan keyin buyurtma berishingiz mumkin.
+                  </p>
+                </div>
+              )}
+              
+              {isApproved && file.priceVisibility !== 'none' && (
+                <div className="flex gap-3 md:gap-4">
+                  {(file.priceVisibility === 'cash' || file.priceVisibility === 'both') && (
+                    <div className="bg-green-50 px-3 md:px-4 py-2 rounded-lg">
+                      <div className="text-xs md:text-sm text-gray-600">{t.cashPrice}</div>
+                      <div className="text-lg md:text-xl font-bold text-green-700">
+                        {file.cashPrice.toLocaleString()} UZS
+                      </div>
+                    </div>
+                  )}
+                  {(file.priceVisibility === 'bank' || file.priceVisibility === 'both') && (
+                    <div className="bg-blue-50 px-3 md:px-4 py-2 rounded-lg">
+                      <div className="text-xs md:text-sm text-gray-600">{t.bankPrice}</div>
+                      <div className="text-lg md:text-xl font-bold text-blue-700">
+                        {file.bankPrice.toLocaleString()} UZS
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             
-            {currentClient.files.map(file => {
-              const fileStatus = file.status || (file.priceVisibility === 'none' ? 'pending' : 'approved');
-              const isRejected = fileStatus === 'rejected';
-              const isPending = fileStatus === 'pending';
-              const isApproved = fileStatus === 'approved' || file.priceVisibility !== 'none';
-              
-              return (
-                <div key={file.id} className="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-4">
-                  <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-                    <div className="flex-1 w-full">
-                      <div className="flex items-center gap-2 md:gap-3 mb-2">
-                        <h3 className="text-lg md:text-xl font-bold text-gray-800">{file.name}</h3>
-                        {isPending && (
-                          <span className="px-2 md:px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs md:text-sm font-semibold">
-                            Narx kutilmoqda
-                          </span>
-                        )}
-                        {isRejected && (
-                          <span className="px-2 md:px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs md:text-sm font-semibold">
-                            Rad etildi
-                          </span>
-                        )}
-                      </div>
-                      
-                      <div className="text-xs md:text-sm text-gray-600 mb-3 md:mb-4">
-                        <span className="mr-3 md:mr-4">
-                          <strong>{t.format}:</strong> {file.format}
-                        </span>
-                        <span>
-                          <strong>Rang:</strong>{' '}
-                          {file.color ? t.colorPrinting : t.blackWhite}
-                        </span>
-                      </div>
-                      
-                      {isRejected && (
-                        <div className="p-3 md:p-4 bg-red-50 border border-red-200 rounded-lg mb-3">
-                          <p className="text-red-800 font-semibold text-sm md:text-base">
-                            ❌ Bu fayl admin tomonidan rad etildi
-                          </p>
-                          <p className="text-xs md:text-sm text-red-600 mt-1">
-                            Agar savol bo'lsa, admin bilan bog'laning.
-                          </p>
-                        </div>
-                      )}
-                      
-                      {isPending && (
-                        <div className="p-3 md:p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-3">
-                          <p className="text-yellow-800 font-semibold text-sm md:text-base">
-                            ⏳ Admin narx belgilashini kutmoqda
-                          </p>
-                          <p className="text-xs md:text-sm text-yellow-600 mt-1">
-                            Narx belgilangandan keyin buyurtma berishingiz mumkin.
-                          </p>
-                        </div>
-                      )}
-                      
-                      {isApproved && file.priceVisibility !== 'none' && (
-                        <div className="flex gap-3 md:gap-4">
-                          {(file.priceVisibility === 'cash' || file.priceVisibility === 'both') && (
-                            <div className="bg-green-50 px-3 md:px-4 py-2 rounded-lg">
-                              <div className="text-xs md:text-sm text-gray-600">{t.cashPrice}</div>
-                              <div className="text-lg md:text-xl font-bold text-green-700">
-                                {file.cashPrice.toLocaleString()} UZS
-                              </div>
-                            </div>
-                          )}
-                          {(file.priceVisibility === 'bank' || file.priceVisibility === 'both') && (
-                            <div className="bg-blue-50 px-3 md:px-4 py-2 rounded-lg">
-                              <div className="text-xs md:text-sm text-gray-600">{t.bankPrice}</div>
-                              <div className="text-lg md:text-xl font-bold text-blue-700">
-                                {file.bankPrice.toLocaleString()} UZS
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="flex flex-row md:flex-col gap-2 w-full md:w-auto">
-                      {isApproved && file.priceVisibility !== 'none' && (
-                        <button
-                          onClick={() => addToCart(file)}
-                          className="flex-1 md:flex-initial px-4 md:px-6 py-2.5 md:py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold text-sm md:text-base"
-                        >
-                          {t.placeOrder}
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleDownloadFile(file.id, file.name, 'cover')}
-                        className="flex-1 md:flex-initial px-4 md:px-6 py-2.5 md:py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-lg font-semibold hover:from-orange-600 hover:to-amber-700 flex items-center justify-center gap-2 text-sm md:text-base"
-                      >
-                        <Download className="w-4 h-4 md:w-5 md:h-5" />
-                        Muqova
-                      </button>
-                      <button
-                        onClick={() => handleDownloadFile(file.id, file.name, 'content')}
-                        className="flex-1 md:flex-initial px-4 md:px-6 py-2.5 md:py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-emerald-700 flex items-center justify-center gap-2 text-sm md:text-base"
-                      >
-                        <Download className="w-4 h-4 md:w-5 md:h-5" />
-                        Ichki
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            <div className="flex flex-row md:flex-col gap-2 w-full md:w-auto">
+              {isApproved && file.priceVisibility !== 'none' && (
+                <button
+                  onClick={() => addToCart(file)}
+                  className="flex-1 md:flex-initial px-4 md:px-6 py-2.5 md:py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold text-sm md:text-base"
+                >
+                  {t.placeOrder}
+                </button>
+              )}
+              <button
+                onClick={() => handleDownloadFile(file.id, file.name, 'cover')}
+                className="flex-1 md:flex-initial px-4 md:px-6 py-2.5 md:py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-lg font-semibold hover:from-orange-600 hover:to-amber-700 flex items-center justify-center gap-2 text-sm md:text-base"
+              >
+                <Download className="w-4 h-4 md:w-5 md:h-5" />
+                Muqova
+              </button>
+              <button
+                onClick={() => handleDownloadFile(file.id, file.name, 'content')}
+                className="flex-1 md:flex-initial px-4 md:px-6 py-2.5 md:py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-emerald-700 flex items-center justify-center gap-2 text-sm md:text-base"
+              >
+                <Download className="w-4 h-4 md:w-5 md:h-5" />
+                Ichki
+              </button>
+            </div>
           </div>
-        )}
+        </div>
+      );
+    })}
+  </div>
+)}
 
         {/* Mijoz - Buyurtmalarim */}
 {user.type === 'client' && section === 'myOrders' && (
@@ -1661,12 +1749,25 @@ const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
                   {new Date(order.created_at).toLocaleDateString('uz-UZ')}
                 </p>
               </div>
-              <span className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full font-semibold text-xs md:text-sm ${getStatusColor(order.status)}`}>
-                {getStatusText(order.status)}
-              </span>
+              
+              {/* ✅ O'ZGARTIRING - Status va Delete tugmasi */}
+              <div className="flex items-center gap-2">
+                <span className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full font-semibold text-xs md:text-sm ${getStatusColor(order.status)}`}>
+                  {getStatusText(order.status)}
+                </span>
+                
+                {/* ✅ DELETE TUGMASI */}
+                <button
+                  onClick={() => handleDeleteOrder(order.id)}
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  title="O'chirish"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
             </div>
             
-            {/* ✅ BARCHA FAYLLARNI HAR BIRI UCHUN DOWNLOAD TUGMALARI BILAN */}
+            {/* BARCHA FAYLLARNI HAR BIRI UCHUN DOWNLOAD TUGMALARI BILAN */}
             {order.items && order.items.length > 0 && (
               <div className="mb-4 space-y-3">
                 {order.items.map((item, idx) => (
@@ -1678,7 +1779,7 @@ const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
                       {item.file_title} - {item.quantity} dona × {parseInt(item.price).toLocaleString()} UZS
                     </div>
                     
-                    {/* ✅ HAR BIR FAYL UCHUN 2 TA TUGMA */}
+                    {/* HAR BIR FAYL UCHUN 2 TA TUGMA */}
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleDownloadFile(item.file_id, item.file_title, 'cover')}
