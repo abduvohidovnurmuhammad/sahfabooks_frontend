@@ -1200,19 +1200,27 @@ const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
                           </td>
                           <td className="px-4 py-4 text-sm">
                             <div className="flex items-center gap-2">
-                              {order.items && order.items.length > 0 && order.items[0].file_path && (
-                                <button
-                                  onClick={() => {
-                                    if (order.items[0].file_id) {
-                                      api.downloadFile(order.items[0].file_id, order.items[0].file_title);
-                                    }
-                                  }}
-                                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                  title="Yuklab olish"
-                                >
-                                  <Download className="w-4 h-4" />
-                                </button>
-                              )}
+                              {order.items && order.items.length > 0 && order.items[0].file_id && (
+  <div className="flex gap-1">
+    {/* Muqova yuklab olish */}
+    <button
+      onClick={() => handleDownloadFile(order.items[0].file_id, order.items[0].file_title, 'cover')}
+      className="p-2 text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors"
+      title="Muqova"
+    >
+      <Download className="w-4 h-4" />
+    </button>
+    
+    {/* Ichki yuklab olish */}
+    <button
+      onClick={() => handleDownloadFile(order.items[0].file_id, order.items[0].file_title, 'content')}
+      className="p-2 text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors"
+      title="Ichki"
+    >
+      <Download className="w-4 h-4" />
+    </button>
+  </div>
+)}
                               
                               {user.type === 'admin' && (
                                 <select
@@ -1255,62 +1263,76 @@ const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
                 </div>
                 
                 {/* Mobile Cards */}
-                <div className="md:hidden px-4 pb-4 space-y-4">
-                  {orders.map((order) => (
-                    <div key={order.id} className="bg-white border rounded-lg p-4">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <div className="font-bold text-gray-800">Buyurtma #{order.id}</div>
-                          {user.type === 'admin' && (
-                            <div className="text-sm text-gray-600 mt-1">
-                              {order.organization_name || order.client_username}
-                            </div>
-                          )}
-                        </div>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
-                          {getStatusText(order.status)}
-                        </span>
-                      </div>
-                      
-                      {order.items && order.items.length > 0 && (
-                        <div className="text-sm text-gray-600 mb-3">
-                          <div className="font-semibold text-gray-800">{order.items[0].file_title}</div>
-                          <div className="flex justify-between mt-1">
-                            <span>{order.items[0].quantity} dona</span>
-                            <span>{parseInt(order.items[0].price).toLocaleString()} UZS</span>
-                          </div>
-                        </div>
-                      )}
-                      
-                      <div className="border-t pt-3 flex justify-between items-center">
-                        <div>
-                          <div className="text-sm text-gray-500">
-                            {new Date(order.created_at).toLocaleDateString('uz-UZ')}
-                          </div>
-                          <div className="font-bold text-gray-900">
-                            {parseInt(order.total_amount).toLocaleString()} UZS
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          {order.items && order.items[0] && order.items[0].file_id && (
-                            <button
-                              onClick={() => api.downloadFile(order.items[0].file_id, order.items[0].file_title)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                            >
-                              <Download className="w-4 h-4" />
-                            </button>
-                          )}
-                          <button
-                            onClick={() => alert(`Buyurtma #${order.id} tafsilotlari`)}
-                            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+        <div className="md:hidden px-4 pb-4 space-y-4">
+  {orders.map((order) => (
+    <div key={order.id} className="bg-white border rounded-lg p-4">
+      <div className="flex justify-between items-start mb-3">
+        <div>
+          <div className="font-bold text-gray-800">Buyurtma #{order.id}</div>
+          {user.type === 'admin' && (
+            <div className="text-sm text-gray-600 mt-1">
+              {order.organization_name || order.client_username}
+            </div>
+          )}
+        </div>
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+          {getStatusText(order.status)}
+        </span>
+      </div>
+      
+      {order.items && order.items.length > 0 && (
+        <div className="text-sm text-gray-600 mb-3">
+          <div className="font-semibold text-gray-800">{order.items[0].file_title}</div>
+          <div className="flex justify-between mt-1">
+            <span>{order.items[0].quantity} dona</span>
+            <span>{parseInt(order.items[0].price).toLocaleString()} UZS</span>
+          </div>
+        </div>
+      )}
+      
+      <div className="border-t pt-3 flex justify-between items-center">
+        <div>
+          <div className="text-sm text-gray-500">
+            {new Date(order.created_at).toLocaleDateString('uz-UZ')}
+          </div>
+          <div className="font-bold text-gray-900">
+            {parseInt(order.total_amount).toLocaleString()} UZS
+          </div>
+        </div>
+        <div className="flex gap-2">
+          {/* ✅ 2 TA DOWNLOAD TUGMASI */}
+          {order.items && order.items[0] && order.items[0].file_id && (
+            <>
+              {/* Muqova yuklab olish */}
+              <button
+                onClick={() => handleDownloadFile(order.items[0].file_id, order.items[0].file_title, 'cover')}
+                className="p-2 text-white bg-orange-500 hover:bg-orange-600 rounded-lg"
+                title="Muqova"
+              >
+                <Download className="w-4 h-4" />
+              </button>
+              
+              {/* Ichki yuklab olish */}
+              <button
+                onClick={() => handleDownloadFile(order.items[0].file_id, order.items[0].file_title, 'content')}
+                className="p-2 text-white bg-green-500 hover:bg-green-600 rounded-lg"
+                title="Ichki"
+              >
+                <Download className="w-4 h-4" />
+              </button>
+            </>
+          )}
+          <button
+            onClick={() => alert(`Buyurtma #${order.id} tafsilotlari`)}
+            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+          >
+            <Eye className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
                 
                 <div className="p-4 md:p-6 border-t bg-gray-50">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
