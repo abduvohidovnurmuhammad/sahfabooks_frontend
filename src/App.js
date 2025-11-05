@@ -110,7 +110,7 @@ export default function App() {
   const [showRegister, setShowRegister] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showClientUploadModal, setShowClientUploadModal] = useState(false);
-  
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [newFile, setNewFile] = useState({
     client_id: '',
     title: '',
@@ -640,7 +640,50 @@ const handleDeleteFile = async (fileId) => {
     alert('❌ Xatolik yuz berdi!');
   }
 };
-
+const handleChangePassword = async (e) => {
+    e.preventDefault();
+    
+    const oldPassword = e.target.oldPassword.value;
+    const newPassword = e.target.newPassword.value;
+    const confirmPassword = e.target.confirmPassword.value;
+    
+    if (newPassword !== confirmPassword) {
+      alert('Yangi parollar mos kelmadi!');
+      return;
+    }
+    
+    if (newPassword.length < 4) {
+      alert('Parol kamida 4 ta belgidan iborat bo\'lishi kerak!');
+      return;
+    }
+    
+    try {
+      const response = await fetch(`http://45.93.138.91:5000/api/users/change-password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${api.getToken()}`
+        },
+        body: JSON.stringify({
+          oldPassword,
+          newPassword
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        alert('✅ Parol muvaffaqiyatli o\'zgartirildi!');
+        setShowChangePasswordModal(false);
+        e.target.reset();
+      } else {
+        alert('❌ ' + (data.error || 'Xatolik yuz berdi!'));
+      }
+    } catch (err) {
+      console.error('Parol o\'zgartirish xatolik:', err);
+      alert('❌ Xatolik yuz berdi!');
+    }
+  };
   // Admin: Faylni rad etish
   const handleRejectFile = async (fileId) => {
     try {
@@ -1940,64 +1983,150 @@ const handleDeleteFile = async (fileId) => {
 
 
         {/* Mijoz - Profil */}
-        {user.type === 'client' && section === 'profile' && currentClient && (
+{user.type === 'client' && section === 'profile' && currentClient && (
+  <div>
+    <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6">{t.profile}</h1>
+    <div className="bg-white rounded-xl shadow-lg p-4 md:p-6">
+      <div className="space-y-3 md:space-y-4">
+        
+        {/* ✅ USERNAME QO'SHILDI */}
+        <div>
+          <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
+            Username
+          </label>
+          <input
+            type="text"
+            value={currentClient.username || user.username || ''}
+            readOnly
+            className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg bg-gray-50 text-sm md:text-base"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
+            {t.schoolName}
+          </label>
+          <input
+            type="text"
+            value={currentClient.schoolName || ''}
+            readOnly
+            className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg bg-gray-50 text-sm md:text-base"
+          />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-6">{t.profile}</h1>
-            <div className="bg-white rounded-xl shadow-lg p-4 md:p-6">
-              <div className="space-y-3 md:space-y-4">
-                <div>
-                  <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
-                    {t.schoolName}
-                  </label>
-                  <input
-                    type="text"
-                    value={currentClient.schoolName || ''}
-                    readOnly
-                    className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg bg-gray-50 text-sm md:text-base"
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                  <div>
-                    <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
-                      {t.phone} 1
-                    </label>
-                    <input
-                      type="text"
-                      value={currentClient.phone1 || ''}
-                      readOnly
-                      className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg bg-gray-50 text-sm md:text-base"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
-                      {t.phone} 2
-                    </label>
-                    <input
-                      type="text"
-                      value={currentClient.phone2 || ''}
-                      readOnly
-                      className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg bg-gray-50 text-sm md:text-base"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
-                    {t.address}
-                  </label>
-                  <input
-                    type="text"
-                    value={currentClient.address || ''}
-                    readOnly
-                    className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg bg-gray-50 text-sm md:text-base"
-                  />
-                </div>
-                <button className="px-4 md:px-6 py-2.5 md:py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 text-sm md:text-base">
-                  {t.changePassword}
-                </button>
-              </div>
-            </div>
+            <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
+              {t.phone} 1
+            </label>
+            <input
+              type="text"
+              value={currentClient.phone1 || ''}
+              readOnly
+              className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg bg-gray-50 text-sm md:text-base"
+            />
           </div>
-        )}
+          <div>
+            <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
+              {t.phone} 2
+            </label>
+            <input
+              type="text"
+              value={currentClient.phone2 || ''}
+              readOnly
+              className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg bg-gray-50 text-sm md:text-base"
+            />
+          </div>
+        </div>
+        
+        <div>
+          <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
+            {t.address}
+          </label>
+          <input
+            type="text"
+            value={currentClient.address || ''}
+            readOnly
+            className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg bg-gray-50 text-sm md:text-base"
+          />
+        </div>
+        
+        {/* ✅ PAROL O'ZGARTIRISH TUGMASI */}
+        <button 
+          onClick={() => setShowChangePasswordModal(true)}
+          className="px-4 md:px-6 py-2.5 md:py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 text-sm md:text-base"
+        >
+          {t.changePassword}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{/* ✅ PAROL O'ZGARTIRISH MODALI */}
+{showChangePasswordModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+      <h3 className="text-xl font-bold text-gray-800 mb-4">Parolni o'zgartirish</h3>
+      
+      <form onSubmit={handleChangePassword} className="space-y-4">
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Eski parol
+          </label>
+          <input
+            type="password"
+            id="oldPassword"
+            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-blue-500"
+            required
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Yangi parol
+          </label>
+          <input
+            type="password"
+            id="newPassword"
+            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-blue-500"
+            required
+            minLength="4"
+          />
+        </div>
+        
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Yangi parolni takrorlang
+          </label>
+          <input
+            type="password"
+            id="confirmPassword"
+            className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:border-blue-500"
+            required
+            minLength="4"
+          />
+        </div>
+        
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => setShowChangePasswordModal(false)}
+            className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50"
+          >
+            Bekor qilish
+          </button>
+          <button
+            type="submit"
+            className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+          >
+            Saqlash
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
       </div>
 
       {/* Modals */}
