@@ -136,138 +136,195 @@ export default function App() {
     file_format: 'PDF'
   });
 
-  useEffect(() => {
-    const loadOrders = async () => {
-      if (user && (section === 'orders' || section === 'myOrders')) {
-        try {
-          console.log('📦 Orders yuklanmoqda...');
-          const ordersData = await api.getOrders();
-          if (ordersData.success) {
-            console.log('✅ Orders yuklandi:', ordersData.orders.length);
-            setOrders(ordersData.orders);
+// ✅ SESSION PERSIST - TO'G'RILANGAN
+useEffect(() => {
+  const savedToken = localStorage.getItem('token');
+  const savedUser = localStorage.getItem('user');
+  
+  if (savedToken && savedUser) {
+    try {
+      const parsedUser = JSON.parse(savedUser);
+      console.log('Saved session topildi:', parsedUser.username);
+      
+      api.setToken(savedToken);
+      setUser(parsedUser);
+      setSection(parsedUser.type === 'admin' ? 'clients' : 'myFiles');
+      
+      // ✅ TO'G'RILANGAN - Faqat admin bo'lsa getUsers chaqiriladi
+      if (parsedUser.type === 'admin') {
+        api.getUsers().then(clientsData => {
+          if (clientsData.success) {
+            setClients(clientsData.users.filter(u => u.role === 'client'));
           }
-        } catch (err) {
-          console.error('❌ Orders yuklash xatolik:', err);
-        }
+        }).catch(err => {
+          console.error('Users yuklash xatolik:', err);
+        });
       }
-    };
-    
-    loadOrders();
-  }, [user, section]);
+      
+      // ✅ Client bo'lsa - faqat o'z ma'lumotlarini yuklaydi
+      if (parsedUser.type === 'client') {
+        // Client o'z fayllarini keyingi useEffect'da yuklaydi
+        console.log('Client session tiklandi');
+      }
+      
+      // Orders'ni yuklash (ikkalasi uchun ham)
+      api.getOrders().then(ordersData => {
+        if (ordersData.success) {
+          setOrders(ordersData.orders);
+        }
+      }).catch(err => {
+        console.error('Orders yuklash xatolik:', err);
+      });
+      
+    } catch (err) {
+      console.error('Saved session yuklash xatolik:', err);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
+  }
+}, []);
 
-  useEffect(() => {
-    if (!user) return;
-    
-    const loadData = async () => {
+// ✅ 2-CHI - ORDERS YUKLASH
+useEffect(() => {
+  const loadOrders = async () => {
+    if (user && (section === 'orders' || section === 'myOrders')) {
       try {
-        if (user.type === 'admin') {
-          const usersData = await api.getUsers();
-          console.log('Users yuklandi:', usersData);
-          
-          const filesData = await api.getFiles();
-          console.log('Files yuklandi:', filesData);
-        
-          if (usersData.users) {
-            const clientUsers = usersData.users
-              .filter(u => u.role === 'client')
-              .map(u => ({
-                id: u.id,
-                schoolName: u.organization_name || u.full_name || u.username,
-                phone1: u.phone || 'N/A',
-                phone2: '',
-                address: u.address || 'N/A',
-                status: 'active',
-                files: filesData.files ? filesData.files
-                  .filter(f => f.client_id === u.id)
-                  .map(f => ({
-                    id: f.id,
-                    name: f.title,
-                    format: f.file_format || 'N/A',
-                    cashPrice: f.cash_price || 0,
-                    bankPrice: f.bank_price || 0,
-                    color: f.color_type === 'Color',
-                    priceVisibility: f.show_price ? 'both' : 'none'
-                  })) : []
-              }));
-            
-            setClients(clientUsers);
-            console.log('Clients yangilandi:', clientUsers);
-          }
-          
-          const ordersData = await api.getOrders();
-          console.log('Orders yuklandi:', ordersData);
-          
-          if (filesData.files) {
-            const pending = filesData.files.filter(f => f.status === 'pending');
-            setPendingFiles(pending);
-            console.log('Pending files:', pending.length);
-          }
-          
-        } else if (user.type === 'client') {
-          const filesData = await api.getFiles();
-          console.log('Files yuklandi (mijoz):', filesData);
-          
-          const clientFiles = filesData.files ? filesData.files.map(f => ({
-            id: f.id,
-            name: f.title,
-            format: f.file_format || 'N/A',
-            cashPrice: f.cash_price || 0,
-            bankPrice: f.bank_price || 0,
-            color: f.color_type === 'Color',
-            priceVisibility: f.show_price ? 'both' : 'none',
-            status: f.status || 'approved'  
-          })) : [];
-          
-          setClients([{
-            id: user.id || 1,
-            schoolName: user.fullName || user.username,
-            phone1: user.phone1 || 'N/A',
-            phone2: user.phone2 || '',
-            address: user.address || 'N/A',
-            status: 'active',
-            files: clientFiles
-          }]);
-          
-          console.log('Mijoz fayllari yuklandi:', clientFiles);
-          
-          const ordersData = await api.getOrders();
-          console.log('Orders yuklandi:', ordersData);
+        console.log('📦 Orders yuklanmoqda...');
+        const ordersData = await api.getOrders();
+        if (ordersData.success) {
+          console.log('✅ Orders yuklandi:', ordersData.orders.length);
+          setOrders(ordersData.orders);
         }
-      } catch (error) {
-        console.error('Ma\'lumotlarni yuklashda xatolik:', error);
+      } catch (err) {
+        console.error('❌ Orders yuklash xatolik:', err);
       }
-    };
-    
-    loadData();
-  }, [user]);
+    }
+  };
+  
+  loadOrders();
+}, [user, section]);
+
+// ✅ 3-CHI - MA'LUMOTLARNI YUKLASH
+useEffect(() => {
+  if (!user) return;
+  
+  const loadData = async () => {
+    try {
+      if (user.type === 'admin') {
+        const usersData = await api.getUsers();
+        console.log('Users yuklandi:', usersData);
+        
+        const filesData = await api.getFiles();
+        console.log('Files yuklandi:', filesData);
+      
+        if (usersData.users) {
+          const clientUsers = usersData.users
+            .filter(u => u.role === 'client')
+            .map(u => ({
+              id: u.id,
+              schoolName: u.organization_name || u.full_name || u.username,
+              phone1: u.phone || 'N/A',
+              phone2: '',
+              address: u.address || 'N/A',
+              status: 'active',
+              files: filesData.files ? filesData.files
+                .filter(f => f.client_id === u.id)
+                .map(f => ({
+                  id: f.id,
+                  name: f.title,
+                  format: f.file_format || 'N/A',
+                  cashPrice: f.cash_price || 0,
+                  bankPrice: f.bank_price || 0,
+                  color: f.color_type === 'Color',
+                  priceVisibility: f.show_price ? 'both' : 'none'
+                })) : []
+            }));
+          
+          setClients(clientUsers);
+          console.log('Clients yangilandi:', clientUsers);
+        }
+        
+        const ordersData = await api.getOrders();
+        console.log('Orders yuklandi:', ordersData);
+        
+        if (filesData.files) {
+          const pending = filesData.files.filter(f => f.status === 'pending');
+          setPendingFiles(pending);
+          console.log('Pending files:', pending.length);
+        }
+        
+      } else if (user.type === 'client') {
+        const filesData = await api.getFiles();
+        console.log('Files yuklandi (mijoz):', filesData);
+        
+        const clientFiles = filesData.files ? filesData.files.map(f => ({
+          id: f.id,
+          name: f.title,
+          format: f.file_format || 'N/A',
+          cashPrice: f.cash_price || 0,
+          bankPrice: f.bank_price || 0,
+          color: f.color_type === 'Color',
+          priceVisibility: f.show_price ? 'both' : 'none',
+          status: f.status || 'approved'  
+        })) : [];
+        
+        setClients([{
+          id: user.id || 1,
+          schoolName: user.fullName || user.username,
+          phone1: user.phone1 || 'N/A',
+          phone2: user.phone2 || '',
+          address: user.address || 'N/A',
+          status: 'active',
+          files: clientFiles
+        }]);
+        
+        console.log('Mijoz fayllari yuklandi:', clientFiles);
+        
+        const ordersData = await api.getOrders();
+        console.log('Orders yuklandi:', ordersData);
+      }
+    } catch (error) {
+      console.error('Ma\'lumotlarni yuklashda xatolik:', error);
+    }
+  };
+  
+  loadData();
+}, [user]);
 
   const t = translations[lang];
 
   // Login funksiyasi
-  const handleLogin = async (e) => {
-    e.preventDefault();
+const handleLogin = async (e) => {
+  e.preventDefault();
+  
+  const un = e.target.username.value.trim();
+  const pw = e.target.password.value.trim();
+  
+  try {
+    console.log('Login urinishi:', un);
+    const data = await api.login(un, pw);
+    console.log('Backend javobi:', data);
     
-    const un = e.target.username.value.trim();
-    const pw = e.target.password.value.trim();
+    const userData = { 
+      type: data.user.role, 
+      username: data.user.username, 
+      fullName: data.user.full_name,
+      id: data.user.id  
+    };
     
-    try {
-      console.log('Login urinishi:', un);
-      const data = await api.login(un, pw);
-      console.log('Backend javobi:', data);
-      
-      setUser({ 
-        type: data.user.role, 
-        username: data.user.username, 
-        fullName: data.user.full_name,
-        id: data.user.id  
-      });
-      setSection(data.user.role === 'admin' ? 'clients' : 'myFiles');
-      alert(t.login === 'Kirish' ? 'Xush kelibsiz, ' + data.user.full_name : 'Welcome, ' + data.user.full_name);
-    } catch (error) {
-      console.error('Login xatolik:', error);
-      alert(t.login === 'Kirish' ? 'Noto\'g\'ri ma\'lumotlar!' : 'Invalid credentials!');
-    }
-  };
+    setUser(userData);
+    setSection(data.user.role === 'admin' ? 'clients' : 'myFiles');
+    
+    // ✅ YANGI - localStorage'ga saqlash
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    console.log('✅ Session localStorage\'ga saqlandi');
+    
+  } catch (error) {
+    console.error('Login xatolik:', error);
+    alert(t.login === 'Kirish' ? 'Noto\'g\'ri ma\'lumotlar!' : 'Invalid credentials!');
+  }
+};
 
   // Registration funksiyasi
   const handleRegister = async (e) => {
@@ -1005,13 +1062,29 @@ const handleDeleteFile = async (fileId) => {
         </nav>
 
         <div className="p-3 md:p-4 border-t border-blue-500">
-          <button
-            onClick={() => setUser(null)}
-            className="w-full flex items-center px-3 md:px-4 py-2.5 md:py-3 rounded-lg hover:bg-blue-700 text-sm md:text-base"
-          >
-            <LogOut className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3" />
-            <span className="font-semibold">{t.logout}</span>
-          </button>
+        <button
+  onClick={() => {
+    // ✅ localStorage'ni tozalash
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    
+    // ✅ API token'ni tozalash
+    api.clearToken();
+    
+    // ✅ State'larni tozalash
+    setUser(null);
+    setSelectedClient(null);
+    setSection('clients');
+    setCart([]);
+    setIsMobileMenuOpen(false);
+    
+    console.log('✅ Logout - session tozalandi');
+  }}
+  className="w-full flex items-center px-3 md:px-4 py-2.5 md:py-3 rounded-lg hover:bg-blue-700 text-sm md:text-base"
+>
+  <LogOut className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3" />
+  <span className="font-semibold">{t.logout}</span>
+</button>
         </div>
       </div>
 
