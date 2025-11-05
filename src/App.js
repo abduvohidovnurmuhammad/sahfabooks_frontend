@@ -641,49 +641,59 @@ const handleDeleteFile = async (fileId) => {
   }
 };
 const handleChangePassword = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
+  
+  const oldPassword = e.target.oldPassword.value;
+  const newPassword = e.target.newPassword.value;
+  const confirmPassword = e.target.confirmPassword.value;
+  
+  if (newPassword !== confirmPassword) {
+    alert('Yangi parollar mos kelmadi!');
+    return;
+  }
+  
+  if (newPassword.length < 4) {
+    alert('Parol kamida 4 ta belgidan iborat bo\'lishi kerak!');
+    return;
+  }
+  
+  try {
+    // ✅ DEBUG - Token tekshirish
+    console.log('=== TOKEN TEKSHIRISH ===');
+    console.log('Token:', api.getToken());
+    console.log('Token length:', api.getToken()?.length);
     
-    const oldPassword = e.target.oldPassword.value;
-    const newPassword = e.target.newPassword.value;
-    const confirmPassword = e.target.confirmPassword.value;
+    const response = await fetch(`http://45.93.138.91:5000/api/users/change-password`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${api.getToken()}`
+      },
+      body: JSON.stringify({
+        oldPassword,
+        newPassword
+      })
+    });
     
-    if (newPassword !== confirmPassword) {
-      alert('Yangi parollar mos kelmadi!');
-      return;
+    // ✅ DEBUG - Response tekshirish
+    console.log('Response status:', response.status);
+    
+    const data = await response.json();
+    console.log('Response data:', data);
+    
+    if (data.success) {
+      alert('✅ Parol muvaffaqiyatli o\'zgartirildi!');
+      setShowChangePasswordModal(false);
+      e.target.reset();
+    } else {
+      alert('❌ ' + (data.error || 'Xatolik yuz berdi!'));
     }
-    
-    if (newPassword.length < 4) {
-      alert('Parol kamida 4 ta belgidan iborat bo\'lishi kerak!');
-      return;
-    }
-    
-    try {
-      const response = await fetch(`http://45.93.138.91:5000/api/users/change-password`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${api.getToken()}`
-        },
-        body: JSON.stringify({
-          oldPassword,
-          newPassword
-        })
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        alert('✅ Parol muvaffaqiyatli o\'zgartirildi!');
-        setShowChangePasswordModal(false);
-        e.target.reset();
-      } else {
-        alert('❌ ' + (data.error || 'Xatolik yuz berdi!'));
-      }
-    } catch (err) {
-      console.error('Parol o\'zgartirish xatolik:', err);
-      alert('❌ Xatolik yuz berdi!');
-    }
-  };
+  } catch (err) {
+    console.error('Parol o\'zgartirish xatolik:', err);
+    alert('❌ Xatolik yuz berdi!');
+  }
+};
+
   // Admin: Faylni rad etish
   const handleRejectFile = async (fileId) => {
     try {
