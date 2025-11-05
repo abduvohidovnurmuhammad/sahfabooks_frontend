@@ -1178,57 +1178,109 @@ const handleDeleteFile = async (fileId) => {
         )}
 
         {/* Admin - Mijoz tafsilotlari */}
-        {user.type === 'admin' && section === 'clients' && selectedClient && (
-          <div>
-            <button
-              onClick={() => setSelectedClient(null)}
-              className="mb-4 md:mb-6 text-blue-600 hover:text-blue-800 font-semibold text-sm md:text-base"
-            >
-              ← {t.clients}
-            </button>
-            <div className="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-4 md:mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-3 md:mb-4">
-                {selectedClient.schoolName}
-              </h2>
-              <div className="text-gray-600 text-sm md:text-base">
-                <p className="mb-1">
-                  <strong>{t.phone}:</strong> {selectedClient.phone1}
-                  {selectedClient.phone2 && `, ${selectedClient.phone2}`}
-                </p>
-                <p>
-                  <strong>{t.address}:</strong> {selectedClient.address}
-                </p>
+{user.type === 'admin' && section === 'clients' && selectedClient && (
+  <div>
+    <button
+      onClick={() => setSelectedClient(null)}
+      className="mb-4 md:mb-6 text-blue-600 hover:text-blue-800 font-semibold text-sm md:text-base"
+    >
+      ← {t.clients}
+    </button>
+    
+    <div className="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-4 md:mb-6">
+      <h2 className="text-xl md:text-2xl font-bold text-gray-800 mb-3 md:mb-4">
+        {selectedClient.schoolName}
+      </h2>
+      <div className="text-gray-600 text-sm md:text-base">
+        <p className="mb-1">
+          <strong>{t.phone}:</strong> {selectedClient.phone1}
+          {selectedClient.phone2 && `, ${selectedClient.phone2}`}
+        </p>
+        <p>
+          <strong>{t.address}:</strong> {selectedClient.address}
+        </p>
+      </div>
+      
+      {/* ✅ JAMI SUMMA */}
+      {/* ✅ JAMI SUMMA - Debugging bilan */}
+{/* ✅ JAMI SUMMA - Fayllar narxlari */}
+<div className="mt-4 pt-4 border-t border-gray-200">
+  <div className="space-y-2">
+    {/* Naqd narx yig'indisi */}
+    <div className="flex justify-between items-center">
+      <span className="text-sm md:text-base font-semibold text-gray-700">
+        Jami naqd narx:
+      </span>
+      <span className="text-lg md:text-xl font-bold text-green-600">
+        {selectedClient.files
+          .reduce((sum, f) => sum + (parseFloat(f.cashPrice) || 0), 0)
+          .toLocaleString()} UZS
+      </span>
+    </div>
+    
+    {/* Bank narx yig'indisi */}
+    <div className="flex justify-between items-center">
+      <span className="text-sm md:text-base font-semibold text-gray-700">
+        Jami bank narx:
+      </span>
+      <span className="text-lg md:text-xl font-bold text-blue-600">
+        {selectedClient.files
+          .reduce((sum, f) => sum + (parseFloat(f.bankPrice) || 0), 0)
+          .toLocaleString()} UZS
+      </span>
+    </div>
+  </div>
+</div>
+    </div>
+    
+    <div className="bg-white rounded-xl shadow-lg p-4 md:p-6">
+      <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-3 md:mb-4">Fayllar</h3>
+      <div className="space-y-3">
+        {selectedClient.files.map(file => (
+          <div
+            key={file.id}
+            className="border border-gray-200 rounded-lg p-3 md:p-4"
+          >
+            <div className="font-semibold text-gray-800 mb-2 text-sm md:text-base">{file.name}</div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs md:text-sm text-gray-600 mb-3">
+              <div>
+                <strong>{t.format}:</strong> {file.format}
+              </div>
+              <div>
+                <strong>{t.cashPrice}:</strong> {file.cashPrice.toLocaleString()} UZS
+              </div>
+              <div>
+                <strong>{t.bankPrice}:</strong> {file.bankPrice.toLocaleString()} UZS
+              </div>
+              <div>
+                <strong>Rang:</strong> {file.color ? 'Ha' : 'Yo\'q'}
               </div>
             </div>
-            <div className="bg-white rounded-xl shadow-lg p-4 md:p-6">
-              <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-3 md:mb-4">Fayllar</h3>
-              <div className="space-y-3">
-                {selectedClient.files.map(file => (
-                  <div
-                    key={file.id}
-                    className="border border-gray-200 rounded-lg p-3 md:p-4"
-                  >
-                    <div className="font-semibold text-gray-800 mb-2 text-sm md:text-base">{file.name}</div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs md:text-sm text-gray-600">
-                      <div>
-                        <strong>{t.format}:</strong> {file.format}
-                      </div>
-                      <div>
-                        <strong>{t.cashPrice}:</strong> {file.cashPrice} UZS
-                      </div>
-                      <div>
-                        <strong>{t.bankPrice}:</strong> {file.bankPrice} UZS
-                      </div>
-                      <div>
-                        <strong>Rang:</strong> {file.color ? 'Ha' : 'Yo\'q'}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            
+            {/* DOWNLOAD TUGMALARI */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleDownloadFile(file.id, file.name, 'cover')}
+                className="flex-1 px-3 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs md:text-sm flex items-center justify-center gap-2 transition-colors"
+              >
+                <Download className="w-3 h-3 md:w-4 md:h-4" />
+                Muqova
+              </button>
+              <button
+                onClick={() => handleDownloadFile(file.id, file.name, 'content')}
+                className="flex-1 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs md:text-sm flex items-center justify-center gap-2 transition-colors"
+              >
+                <Download className="w-3 h-3 md:w-4 md:h-4" />
+                Ichki
+              </button>
             </div>
           </div>
-        )}
+        ))}
+      </div>
+    </div>
+  </div>
+)}
 
         {/* Admin/Client - Buyurtmalar */}
         {section === 'orders' && (
