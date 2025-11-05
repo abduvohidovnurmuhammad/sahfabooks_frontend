@@ -565,7 +565,7 @@ const handleDeleteOrder = async (orderId) => {
     const data = await response.json();
 
     if (data.success) {
-      alert('✅ Buyurtma o\'chirildi!');
+     
       const ordersData = await api.getOrders();
       if (ordersData.success) {
         setOrders(ordersData.orders);
@@ -604,7 +604,7 @@ const handleDeleteOrder = async (orderId) => {
       const data = await response.json();
       console.log('Fayl tasdiqlandi:', data);
 
-      alert('Fayl muvaffaqiyatli tasdiqlandi! Mijoz endi buyurtma berishi mumkin.');
+     
       setPendingFiles(pendingFiles.filter(f => f.id !== fileId));
 
     } catch (error) {
@@ -630,7 +630,7 @@ const handleDeleteFile = async (fileId) => {
     const data = await response.json();
 
     if (data.success) {
-      alert('✅ Fayl o\'chirildi!');
+      
       window.location.reload();
     } else {
       alert('❌ Xatolik: ' + data.error);
@@ -708,7 +708,7 @@ const handleDeleteFile = async (fileId) => {
       console.log('Backend javobi:', response);
 
       if (response.success) {
-        alert('Buyurtma muvaffaqiyatli yaratildi! ✅');
+       
         
         setCart([]);
         setShowModal(false);
@@ -1427,7 +1427,7 @@ const handleDeleteFile = async (fileId) => {
                       await api.updateOrderStatus(order.id, e.target.value);
                       const ordersData = await api.getOrders();
                       setOrders(ordersData.orders);
-                      alert('Status muvaffaqiyatli yangilandi!');
+                     
                     } catch (err) {
                       console.error('Status yangilash xatolik:', err);
                       alert('Xatolik yuz berdi!');
