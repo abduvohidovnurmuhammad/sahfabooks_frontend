@@ -111,19 +111,20 @@ export default function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showClientUploadModal, setShowClientUploadModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
-  const [newFile, setNewFile] = useState({
-    client_id: '',
-    title: '',
-    description: '',
-    file: null,
-    cash_price: '',
-    bank_price: '',
-    show_price: true,
-    stock: 0,
-    page_size: 'A4',
-    color_type: 'B&W',
-    file_format: 'PDF'
-  });
+const [newFile, setNewFile] = useState({
+  client_id: '',
+  title: '',
+  description: '',
+  cover_file: null,      // ← YANGI - Muqova
+  content_file: null,    // ← YANGI - Ichki
+  cash_price: '',
+  bank_price: '',
+  show_price: true,
+  stock: 0,
+  page_size: 'A4',
+  color_type: 'B&W',
+  file_format: 'PDF'
+});
 
   const [clientFile, setClientFile] = useState({
     title: '',
@@ -373,62 +374,67 @@ const handleLogin = async (e) => {
   };
 
   // Yangi fayl qo'shish
-  const handleAddFile = async (e) => {
-    e.preventDefault();
+const handleAddFile = async (e) => {
+  e.preventDefault();
+  
+  try {
+    const formData = new FormData();
     
-    try {
-      const formData = new FormData();
-      formData.append('file', newFile.file);
-      formData.append('client_id', newFile.client_id);
-      formData.append('title', newFile.title);
-      formData.append('description', newFile.description);
-      formData.append('cash_price', newFile.cash_price);
-      formData.append('bank_price', newFile.bank_price);
-      formData.append('show_price', newFile.show_price);
-      formData.append('stock', newFile.stock);
-      formData.append('page_size', newFile.page_size);
-      formData.append('color_type', newFile.color_type);
-      formData.append('file_format', newFile.file_format);
+    // ✅ 2 TA FAYL QO'SHISH
+    formData.append('cover_file', newFile.cover_file);      // Muqova
+    formData.append('content_file', newFile.content_file);  // Ichki
+    
+    formData.append('client_id', newFile.client_id);
+    formData.append('title', newFile.title);
+    formData.append('description', newFile.description);
+    formData.append('cash_price', newFile.cash_price);
+    formData.append('bank_price', newFile.bank_price);
+    formData.append('show_price', newFile.show_price);
+    formData.append('stock', newFile.stock);
+    formData.append('page_size', newFile.page_size);
+    formData.append('color_type', newFile.color_type);
+    formData.append('file_format', newFile.file_format);
 
-      const response = await fetch('http://45.93.138.91:5000/api/files', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${api.getToken()}`
-        },
-        body: formData
-      });
+    const response = await fetch('http://45.93.138.91:5000/api/files', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${api.getToken()}`
+      },
+      body: formData
+    });
 
-      if (!response.ok) throw new Error('Fayl qo\'shishda xatolik');
+    if (!response.ok) throw new Error('Fayl qo\'shishda xatolik');
 
-      const data = await response.json();
-      console.log('Fayl qo\'shildi:', data);
-      
-      alert('Fayl muvaffaqiyatli qo\'shildi!');
-      setShowAddFileModal(false);
-      
-      setNewFile({
-        client_id: '',
-        title: '',
-        description: '',
-        file: null,
-        cash_price: '',
-        bank_price: '',
-        show_price: true,
-        stock: 0,
-        page_size: 'A4',
-        color_type: 'B&W',
-        file_format: 'PDF'
-      });
-      
-      window.location.reload();
-      
-    } catch (error) {
-      console.error('Xatolik:', error);
-      alert('Fayl qo\'shishda xatolik!');
-    }
-  };
+    const data = await response.json();
+    console.log('Fayl qo\'shildi:', data);
+    
+    alert('Fayl muvaffaqiyatli qo\'shildi!');
+    setShowAddFileModal(false);
+    
+    // ✅ STATE'NI RESET QILISH
+    setNewFile({
+      client_id: '',
+      title: '',
+      description: '',
+      cover_file: null,     // ← YANGI
+      content_file: null,   // ← YANGI
+      cash_price: '',
+      bank_price: '',
+      show_price: true,
+      stock: 0,
+      page_size: 'A4',
+      color_type: 'B&W',
+      file_format: 'PDF'
+    });
+    
+    window.location.reload();
+    
+  } catch (error) {
+    console.error('Xatolik:', error);
+    alert('Fayl qo\'shishda xatolik!');
+  }
+};
 
-  // Faylni yuklab olish - cover yoki content
 // Faylni yuklab olish - cover yoki content
 const handleDownloadFile = async (fileId, fileName, fileType = 'content') => {
   try {
@@ -2141,200 +2147,225 @@ const handleChangePassword = async (e) => {
 
       {/* Modals */}
       {/* Admin - Yangi Fayl Qo'shish Modal */}
-      {user?.type === 'admin' && showAddFileModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-4 md:p-6 border-b flex justify-between items-center sticky top-0 bg-white">
-              <h2 className="text-xl md:text-2xl font-bold">Yangi Fayl Qo'shish</h2>
-              <button onClick={() => setShowAddFileModal(false)}>
-                <X className="w-5 h-5 md:w-6 md:h-6" />
-              </button>
+{user?.type === 'admin' && showAddFileModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="p-4 md:p-6 border-b flex justify-between items-center sticky top-0 bg-white">
+        <h2 className="text-xl md:text-2xl font-bold">Yangi Fayl Qo'shish</h2>
+        <button onClick={() => setShowAddFileModal(false)}>
+          <X className="w-5 h-5 md:w-6 md:h-6" />
+        </button>
+      </div>
+      
+      <form onSubmit={handleAddFile} className="p-4 md:p-6">
+        <div className="space-y-3 md:space-y-4">
+          <div>
+            <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
+              Mijoz *
+            </label>
+            <select
+              required
+              value={newFile.client_id}
+              onChange={(e) => setNewFile({...newFile, client_id: e.target.value})}
+              className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
+            >
+              <option value="">Mijozni tanlang</option>
+              {clients.map(client => (
+                <option key={client.id} value={client.id}>
+                  {client.schoolName}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* ✅ MUQOVA FAYLI */}
+          <div>
+            <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
+              Muqova Fayli (PDF, DOC, DOCX, JPG, PNG - Max 500MB) *
+            </label>
+            <input
+              type="file"
+              required
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+              onChange={(e) => setNewFile({...newFile, cover_file: e.target.files[0]})}
+              className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
+            />
+            {newFile.cover_file && (
+              <p className="text-xs md:text-sm text-green-600 mt-1">
+                ✓ {newFile.cover_file.name}
+              </p>
+            )}
+          </div>
+
+          {/* ✅ ICHKI FAYL */}
+          <div>
+            <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
+              Ichki Fayl (PDF, DOC, DOCX, JPG, PNG - Max 500MB) *
+            </label>
+            <input
+              type="file"
+              required
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+              onChange={(e) => setNewFile({...newFile, content_file: e.target.files[0]})}
+              className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
+            />
+            {newFile.content_file && (
+              <p className="text-xs md:text-sm text-green-600 mt-1">
+                ✓ {newFile.content_file.name}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
+              Sarlavha *
+            </label>
+            <input
+              type="text"
+              required
+              value={newFile.title}
+              onChange={(e) => setNewFile({...newFile, title: e.target.value})}
+              placeholder="Masalan: Matematika Darslik - 5-sinf"
+              className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
+              Tavsif
+            </label>
+            <textarea
+              value={newFile.description}
+              onChange={(e) => setNewFile({...newFile, description: e.target.value})}
+              placeholder="Fayl haqida qisqacha ma'lumot"
+              rows="3"
+              className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
+            <div>
+              <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
+                Naqd Narx (UZS) *
+              </label>
+              <input
+                type="number"
+                required
+                min="0"
+                value={newFile.cash_price}
+                onChange={(e) => setNewFile({...newFile, cash_price: e.target.value})}
+                placeholder="15000"
+                className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
+              />
             </div>
-            
-            <form onSubmit={handleAddFile} className="p-4 md:p-6">
-              <div className="space-y-3 md:space-y-4">
-                <div>
-                  <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
-                    Mijoz *
-                  </label>
-                  <select
-                    required
-                    value={newFile.client_id}
-                    onChange={(e) => setNewFile({...newFile, client_id: e.target.value})}
-                    className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
-                  >
-                    <option value="">Mijozni tanlang</option>
-                    {clients.map(client => (
-                      <option key={client.id} value={client.id}>
-                        {client.schoolName}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            <div>
+              <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
+                Bank Narx (UZS) *
+              </label>
+              <input
+                type="number"
+                required
+                min="0"
+                value={newFile.bank_price}
+                onChange={(e) => setNewFile({...newFile, bank_price: e.target.value})}
+                placeholder="14000"
+                className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
+              />
+            </div>
+          </div>
 
-                <div>
-                  <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
-                    Fayl (PDF, DOC, DOCX, JPG, PNG - Max 500MB) *
-                  </label>
-                  <input
-                    type="file"
-                    required
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                    onChange={(e) => setNewFile({...newFile, file: e.target.files[0]})}
-                    className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
-                  />
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+            <div>
+              <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
+                Format
+              </label>
+              <select
+                value={newFile.file_format}
+                onChange={(e) => setNewFile({...newFile, file_format: e.target.value})}
+                className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
+              >
+                <option value="PDF">PDF</option>
+                <option value="DOC">DOC</option>
+                <option value="DOCX">DOCX</option>
+                <option value="JPG">JPG</option>
+                <option value="PNG">PNG</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
+                Sahifa O'lchami
+              </label>
+              <select
+                value={newFile.page_size}
+                onChange={(e) => setNewFile({...newFile, page_size: e.target.value})}
+                className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
+              >
+                <option value="A4">A4</option>
+                <option value="A5">A5</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
+                Rang
+              </label>
+              <select
+                value={newFile.color_type}
+                onChange={(e) => setNewFile({...newFile, color_type: e.target.value})}
+                className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
+              >
+                <option value="B&W">Oq-Qora</option>
+                <option value="Color">Rangli</option>
+              </select>
+            </div>
+          </div>
 
-                <div>
-                  <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
-                    Sarlavha *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={newFile.title}
-                    onChange={(e) => setNewFile({...newFile, title: e.target.value})}
-                    placeholder="Masalan: Matematika Darslik - 5-sinf"
-                    className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
-                  />
-                </div>
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
+            <div>
+              <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
+                Stock (dona)
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={newFile.stock}
+                onChange={(e) => setNewFile({...newFile, stock: e.target.value})}
+                placeholder="50"
+                className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
+              />
+            </div>
+            <div className="flex items-center pt-6 md:pt-8">
+              <input
+                type="checkbox"
+                checked={newFile.show_price}
+                onChange={(e) => setNewFile({...newFile, show_price: e.target.checked})}
+                className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3"
+              />
+              <label className="text-xs md:text-sm font-semibold text-gray-700">
+                Narxlarni mijozga ko'rsatish
+              </label>
+            </div>
+          </div>
 
-                <div>
-                  <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
-                    Tavsif
-                  </label>
-                  <textarea
-                    value={newFile.description}
-                    onChange={(e) => setNewFile({...newFile, description: e.target.value})}
-                    placeholder="Fayl haqida qisqacha ma'lumot"
-                    rows="3"
-                    className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 md:gap-4">
-                  <div>
-                    <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
-                      Naqd Narx (UZS) *
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min="0"
-                      value={newFile.cash_price}
-                      onChange={(e) => setNewFile({...newFile, cash_price: e.target.value})}
-                      placeholder="15000"
-                      className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
-                      Bank Narx (UZS) *
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min="0"
-                      value={newFile.bank_price}
-                      onChange={(e) => setNewFile({...newFile, bank_price: e.target.value})}
-                      placeholder="14000"
-                      className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-                  <div>
-                    <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
-                      Format
-                    </label>
-                    <select
-                      value={newFile.file_format}
-                      onChange={(e) => setNewFile({...newFile, file_format: e.target.value})}
-                      className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
-                    >
-                      <option value="PDF">PDF</option>
-                      <option value="DOC">DOC</option>
-                      <option value="DOCX">DOCX</option>
-                      <option value="JPG">JPG</option>
-                      <option value="PNG">PNG</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
-                      Sahifa O'lchami
-                    </label>
-                    <select
-                      value={newFile.page_size}
-                      onChange={(e) => setNewFile({...newFile, page_size: e.target.value})}
-                      className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
-                    >
-                      <option value="A4">A4</option>
-                      <option value="A5">A5</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
-                      Rang
-                    </label>
-                    <select
-                      value={newFile.color_type}
-                      onChange={(e) => setNewFile({...newFile, color_type: e.target.value})}
-                      className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
-                    >
-                      <option value="B&W">Oq-Qora</option>
-                      <option value="Color">Rangli</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 md:gap-4">
-                  <div>
-                    <label className="block text-xs md:text-sm font-semibold text-gray-700 mb-1 md:mb-2">
-                      Stock (dona)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={newFile.stock}
-                      onChange={(e) => setNewFile({...newFile, stock: e.target.value})}
-                      placeholder="50"
-                      className="w-full px-3 md:px-4 py-2 md:py-3 border rounded-lg focus:border-blue-500 focus:outline-none text-sm md:text-base"
-                    />
-                  </div>
-                  <div className="flex items-center pt-6 md:pt-8">
-                    <input
-                      type="checkbox"
-                      checked={newFile.show_price}
-                      onChange={(e) => setNewFile({...newFile, show_price: e.target.checked})}
-                      className="w-4 h-4 md:w-5 md:h-5 mr-2 md:mr-3"
-                    />
-                    <label className="text-xs md:text-sm font-semibold text-gray-700">
-                      Narxlarni mijozga ko'rsatish
-                    </label>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 md:gap-4 pt-3 md:pt-4 border-t">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddFileModal(false)}
-                    className="flex-1 px-4 md:px-6 py-2.5 md:py-3 border-2 border-gray-300 rounded-lg font-semibold hover:bg-gray-50 text-sm md:text-base"
-                  >
-                    Bekor qilish
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 px-4 md:px-6 py-2.5 md:py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-emerald-700 text-sm md:text-base"
-                  >
-                    Fayl Qo'shish
-                  </button>
-                </div>
-              </div>
-            </form>
+          <div className="flex gap-3 md:gap-4 pt-3 md:pt-4 border-t">
+            <button
+              type="button"
+              onClick={() => setShowAddFileModal(false)}
+              className="flex-1 px-4 md:px-6 py-2.5 md:py-3 border-2 border-gray-300 rounded-lg font-semibold hover:bg-gray-50 text-sm md:text-base"
+            >
+              Bekor qilish
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 md:px-6 py-2.5 md:py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-emerald-700 text-sm md:text-base"
+            >
+              Fayl Qo'shish
+            </button>
           </div>
         </div>
-      )}
+      </form>
+    </div>
+  </div>
+)}
 
       {/* Buyurtma Modal */}
       {showModal && (
