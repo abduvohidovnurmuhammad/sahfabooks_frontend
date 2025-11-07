@@ -374,10 +374,19 @@ const handleLogin = async (e) => {
   };
 
   // Yangi fayl qo'shish
+// ESKI (TO'LIQ O'CHIRISH)
+
+// ⬇️ YANGI (QO'YISH) ⬇️
 const handleAddFile = async (e) => {
   e.preventDefault();
   
   try {
+    // ✅ 2 ta faylni tekshirish
+    if (!newFile.cover_file || !newFile.content_file) {
+      alert('Ikkala fayl ham majburiy!');
+      return;
+    }
+
     const formData = new FormData();
     
     // ✅ 2 TA FAYL QO'SHISH
@@ -403,21 +412,24 @@ const handleAddFile = async (e) => {
       body: formData
     });
 
-    if (!response.ok) throw new Error('Fayl qo\'shishda xatolik');
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Fayl qo\'shishda xatolik');
+    }
 
     const data = await response.json();
-    console.log('Fayl qo\'shildi:', data);
+    console.log('✅ Fayl qo\'shildi:', data);
     
     alert('Fayl muvaffaqiyatli qo\'shildi!');
     setShowAddFileModal(false);
     
-    // ✅ STATE'NI RESET QILISH
+    // State'ni reset qilish
     setNewFile({
       client_id: '',
       title: '',
       description: '',
-      cover_file: null,     // ← YANGI
-      content_file: null,   // ← YANGI
+      cover_file: null,
+      content_file: null,
       cash_price: '',
       bank_price: '',
       show_price: true,
@@ -430,8 +442,8 @@ const handleAddFile = async (e) => {
     window.location.reload();
     
   } catch (error) {
-    console.error('Xatolik:', error);
-    alert('Fayl qo\'shishda xatolik!');
+    console.error('❌ Xatolik:', error);
+    alert(error.message || 'Fayl qo\'shishda xatolik!');
   }
 };
 
