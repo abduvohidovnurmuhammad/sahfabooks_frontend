@@ -1356,8 +1356,6 @@ const handleChangePassword = async (e) => {
         });
         
         if (!response.ok) throw new Error('O\'chirishda xatolik');
-        
-        alert('Fayl o\'chirildi!');
         window.location.reload();
       } catch (error) {
         console.error('Xatolik:', error);
