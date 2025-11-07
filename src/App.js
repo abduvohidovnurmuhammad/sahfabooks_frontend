@@ -1271,8 +1271,6 @@ const handleChangePassword = async (e) => {
           <strong>{t.address}:</strong> {selectedClient.address}
         </p>
       </div>
-      
-      {/* ✅ JAMI SUMMA */}
       {/* ✅ JAMI SUMMA - Debugging bilan */}
 {/* ✅ JAMI SUMMA - Fayllar narxlari */}
 <div className="mt-4 pt-4 border-t border-gray-200">
@@ -1346,6 +1344,31 @@ const handleChangePassword = async (e) => {
                 Ichki
               </button>
             </div>
+            <button
+  onClick={async () => {
+    if (window.confirm(`"${file.name}" faylini o'chirmoqchimisiz?`)) {
+      try {
+        const response = await fetch(`http://45.93.138.91:5000/api/files/${file.id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${api.getToken()}`
+          }
+        });
+        
+        if (!response.ok) throw new Error('O\'chirishda xatolik');
+        
+        alert('Fayl o\'chirildi!');
+        window.location.reload();
+      } catch (error) {
+        console.error('Xatolik:', error);
+        alert('Faylni o\'chirishda xatolik!');
+      }
+    }
+  }}
+  className="w-full mt-2 px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs md:text-sm font-semibold transition-colors"
+>
+  🗑️ O'chirish
+</button>
           </div>
         ))}
       </div>
